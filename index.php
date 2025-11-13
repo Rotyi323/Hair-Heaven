@@ -62,6 +62,7 @@ if (empty($featured)) {
     ['id'=>4,'brand'=>'Kérastase','name'=>'Scalp Elixir Treatment','price'=>8990.00,'image'=>'uploads/products/4.jpg'],
   ];
 }
+//teszt
 
 // --- SZOLGÁLTATÁSOK (teaser) ---
 $services = fetch_all_assoc($mysqli, "
