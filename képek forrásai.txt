@@ -1,0 +1,11 @@
+profiles/luca:
+https://www.evansondds.com/wp-content/uploads/EasyBetterSmile1.jpg
+
+profiles/anna
+https://media.istockphoto.com/id/1187559464/photo/beautiful-woman-with-voluminous-curly-hairstyle.jpg?s=612x612&w=0&k=20&c=b-4I0ToMFiAAHH3Q1l5iHBMcDX0qglOcjGKSVBrzh9g=
+
+profiles/bence
+https://media.istockphoto.com/id/914559306/photo/portrait-od-handsome-man-in-studio-on-dark-background.jpg?s=612x612&w=0&k=20&c=9SSPnF-TgabxnYgjkmgTOwOU9BuLco5xgVbAwf39_-o=
+
+products/loreal protect mask
+https://gordonsdirect.com/products/loreal-paris-elvive-colour-protect-anti-brassiness-purple-mask-250ml?srsltid=AfmBOoq-SzWw6kNlhw7HG3p_QFHWNers0LuFg-3m_dzbUbHy2TaWXkTY
