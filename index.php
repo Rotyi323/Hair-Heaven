@@ -92,7 +92,7 @@ if (empty($profiles)) {
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-
+<link rel="stylesheet" href="/assets/hairheaven.css">
   <style>
     :root{
       --hh-primary: #c76df0;
@@ -112,8 +112,7 @@ if (empty($profiles)) {
     .hh-carousel .carousel-item .mask{ position:absolute; inset:0; background:linear-gradient(40deg, rgba(0,0,0,.5), rgba(0,0,0,.15)); }
     .hh-carousel img{ object-fit:cover; width:100%; height:100%; filter:saturate(1.05) contrast(1.02); }
     .hh-carousel h1{ text-shadow:0 10px 30px rgba(0,0,0,.4); font-weight:800; letter-spacing:.3px; }
-    .btn-cta{ background:var(--hh-primary); border:0; font-weight:700; letter-spacing:.4px; }
-    .btn-cta:hover{ filter:brightness(1.05); }
+
 
     .section-title{ font-weight:800; letter-spacing:.4px; margin-bottom:.5rem; }
     .section-sub{ color: var(--hh-muted); }
@@ -144,6 +143,8 @@ if (empty($profiles)) {
     footer{ color: var(--hh-muted); }
     #ajanlatok::before{ content:""; display:block; height:72px; margin-top:-72px; visibility:hidden; }
   </style>
+
+
 </head>
 <body>
 

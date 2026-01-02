@@ -1,0 +1,74 @@
+  :root{
+    --hh-primary:#c76df0;     /* lila */
+    --hh-primary-weak: rgba(199,109,240,.08);
+    --hh-primary-glow: rgba(199,109,240,.22);
+    --hh-dark:#1c1a27;
+  }
+
+  /* Alap egységesítés minden gombra */
+  .btn {
+    border-radius: 10px;
+    transition: color .15s ease, background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .05s ease;
+  }
+  .btn:active { transform: translateY(0.5px) scale(0.99); }
+
+  /* Lila CTA – kosárba, keresés, stb. */
+  .btn-cta{
+    background: var(--hh-primary);
+    color:#fff;
+    border:0;
+    font-weight:700;
+    letter-spacing:.3px;
+  }
+  .btn-cta:hover,
+  .btn-cta:focus{
+    background: var(--hh-primary);
+    color:#fff;
+    box-shadow: 0 4px 14px var(--hh-primary-glow);
+    filter: brightness(1.05);
+  }
+  .btn-cta:focus-visible{
+    outline: none;
+    box-shadow: 0 0 0 0.2rem var(--hh-primary-weak), 0 6px 18px var(--hh-primary-glow);
+  }
+  .btn-cta:disabled,
+  .btn-cta.disabled{
+    background: var(--hh-primary);
+    opacity:.6;
+    box-shadow:none;
+  }
+
+  /* Sötét kontúros – Bejelentkezés, Részletek, stb. (ne „fehéredjen ki”) */
+  .btn-outline-dark{
+    border-color: #2b2a33;
+    color: #2b2a33;
+    background: transparent;
+  }
+  .btn-outline-dark:hover,
+  .btn-outline-dark:focus{
+    border-color: var(--hh-primary);
+    color: var(--hh-primary);
+    background: var(--hh-primary-weak);
+    box-shadow: 0 4px 14px var(--hh-primary-glow);
+  }
+  .btn-outline-dark:focus-visible{
+    outline: none;
+    box-shadow: 0 0 0 0.2rem var(--hh-primary-weak), 0 6px 18px var(--hh-primary-glow);
+  }
+
+  /* Sötét (ha néhol sima .btn-dark-ot használsz) – passzoljon a témához */
+  .btn-dark{
+    background:#2b2a33;
+    border-color:#2b2a33;
+    color:#fff;
+  }
+  .btn-dark:hover,
+  .btn-dark:focus{
+    background:#25242c;
+    border-color:#25242c;
+    box-shadow: 0 4px 14px rgba(37,36,44,.25);
+  }
+
+  /* Kisebb esztétikai finomítás: ikon és szöveg távolság egységesen */
+  .btn i { margin-right:.35rem; }
+

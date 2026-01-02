@@ -137,7 +137,7 @@ function qs_without_page(){
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-
+<link rel="stylesheet" href="/assets/hairheaven.css">
   <style>
     :root{
       --hh-primary:#c76df0; --hh-dark:#1c1a27; --hh-muted:#6c6a75; --hh-bg:#faf7ff;
@@ -158,8 +158,6 @@ function qs_without_page(){
     .brand-badge{ background:#f3e7ff; color:#7e3dbf; font-weight:700; border-radius:999px; padding:.25rem .65rem; font-size:.75rem; }
     .price-tag{ font-weight:800; font-size:1.1rem; }
     .form-select, .form-control{ border-radius:10px; }
-    .btn-cta{ background:var(--hh-primary); border:0; font-weight:700; letter-spacing:.3px; }
-    .btn-cta:hover{ filter:brightness(1.05); }
     .range-wrap{ position:relative; }
     .multi-range{ position:relative; height:36px; }
     .multi-range input[type=range]{ position:absolute; left:0; right:0; top:8px; pointer-events:none; -webkit-appearance:none; width:100%; background:transparent; height:0; }
@@ -170,6 +168,8 @@ function qs_without_page(){
     .range-values{ display:flex; gap:.75rem; align-items:center; margin-top:8px; flex-wrap:wrap; }
     .range-values .input-group{ min-width:220px; max-width:240px; }
   </style>
+  <link rel="stylesheet" href="/assets/hairheaven.css">
+
 </head>
 <body>
 
@@ -369,7 +369,7 @@ function qs_without_page(){
   const step= parseInt(r1.getAttribute('step'),10) || 10;
 
   function clamp(v){ return Math.max(min, Math.min(max, v)); }
-  
+
   function formatThousands(n){
     const s = String(n).replace(/\D/g,'');
     return s.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');

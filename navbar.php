@@ -3,18 +3,41 @@
 $isLogged  = !empty($_SESSION['belepve']);
 $username  = $_SESSION['username'] ?? null;
 $avatar    = $_SESSION['avatar'] ?? null;
-
-// Opcionális: ellenőrizheted, hogy a fájl tényleg létezik (ha szeretnéd, iktasd be a következőt)
-// if ($avatar && !is_file(__DIR__ . '/' . ltrim($avatar, '/'))) { $avatar = null; }
 ?>
 <nav class="navbar navbar-expand-lg sticky-top">
+    <link rel="stylesheet" href="/assets/hairheaven.css">
+  <style>
+    :root{
+      --hh-primary:#c76df0; --hh-dark:#1c1a27; --hh-muted:#6c6a75;
+    }
+    /* Linkek */
+    .navbar .nav-link{ font-weight:600; color:var(--hh-dark); transition:color .15s ease; }
+    .navbar .nav-link:hover,
+    .navbar .nav-link.active{ color:var(--hh-primary); }
+
+    /* Avatar badge */
+    .navbar .hh-avatar{
+      width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid #fff;
+      box-shadow:0 2px 8px rgba(0,0,0,.15);
+    }
+    .navbar .hh-avatar-fallback{
+      width:28px;height:28px;border-radius:50%;background:#f3e7ff;color:#7e3dbf;
+      display:inline-flex;align-items:center;justify-content:center;
+      box-shadow:0 2px 8px rgba(0,0,0,.15);
+    }
+
+    /* Sáv alap */
+    .navbar{ background:#fff; box-shadow:0 6px 20px rgba(0,0,0,.06); }
+    .navbar-brand{ font-weight:800; letter-spacing:.5px; color:var(--hh-dark); }
+    .navbar-brand .dot{ color:var(--hh-primary); }
+  </style>
+
   <div class="container">
-    <a class="navbar-brand" href="/">
-      Hair <span class="dot">Heaven</span>
-    </a>
+    <a class="navbar-brand" href="/">Hair <span class="dot">Heaven</span></a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#hhNav" aria-controls="hhNav" aria-expanded="false" aria-label="Menü">
       <span class="navbar-toggler-icon"></span>
     </button>
+
     <div class="collapse navbar-collapse" id="hhNav">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item"><a class="nav-link <?= ($activePage==='home'?'active':'') ?>" href="/">Főoldal</a></li>
@@ -30,13 +53,13 @@ $avatar    = $_SESSION['avatar'] ?? null;
           </a>
         </li>
 
-        <?php if ($isLogged): ?>
+        <?php if (!empty($_SESSION['belepve'])): ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown">
-              <?php if ($avatar): ?>
-                <img src="<?= e($avatar) ?>" alt="profil" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.15);">
+              <?php if (!empty($avatar)): ?>
+                <img src="<?= e($avatar) ?>" alt="profil" class="hh-avatar">
               <?php else: ?>
-                <span class="d-inline-flex justify-content-center align-items-center" style="width:28px;height:28px;border-radius:50%;background:#f3e7ff;color:#7e3dbf;">
+                <span class="hh-avatar-fallback">
                   <i class="fa-solid fa-user" style="font-size:.85rem;"></i>
                 </span>
               <?php endif; ?>

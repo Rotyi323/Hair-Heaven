@@ -126,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-
+<link rel="stylesheet" href="/assets/hairheaven.css">
   <style>
     :root{ --hh-primary:#c76df0; --hh-dark:#1c1a27; --hh-muted:#6c6a75; --hh-bg:#faf7ff; }
     body{ background:var(--hh-bg); color:var(--hh-dark); }
@@ -137,12 +137,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .nav-link:hover, .nav-link.active{ color:var(--hh-primary); }
 
     .auth-card{ background:#fff; border-radius:16px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.06); }
-    .btn-cta{ background:var(--hh-primary); border:0; font-weight:700; letter-spacing:.3px; }
-    .btn-cta:hover{ filter:brightness(1.05); }
     .form-control{ border-radius:10px; }
     .page-title{ font-weight:800; letter-spacing:.3px; }
     .muted{ color:var(--hh-muted); }
   </style>
+  <link rel="stylesheet" href="/assets/hairheaven.css">
+
 </head>
 <body>
 
