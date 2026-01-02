@@ -1,52 +1,44 @@
 <?php
-// Hair Heaven – Áruház (aruhaz.php)
-require_once __DIR__ . '/biztonsag.php';
 session_start();
+require_once __DIR__ . '/biztonsag.php';
+require_once __DIR__ . '/connect.php';
 
-// --- DB kapcsolat ---
-$mysqli = null;
-if (file_exists(__DIR__ . '/konfiguracio.php')) {
-  include __DIR__ . '/konfiguracio.php';
-  if (!isset($mysqli) || !($mysqli instanceof mysqli)) $mysqli = null;
-}
+$mysqli = db(); // mysqli | null
 
-// --- Helpers ---
-function e($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
-function get_param($key, $default=''){ return isset($_GET[$key]) ? trim((string)$_GET[$key]) : $default; }
+// --- Helpers már a biztonsag.php-ból: e(), get_param(), stb.
 
-// --- Alap beállítások ---
+// Alap beállítások
 $PAGE_SIZE = 12;
-$isLogged  = !empty($_SESSION['belepve']);
-$username  = $_SESSION['username'] ?? null;
 
-// --- Szűrők/keresés a query-ből ---
-$q         = get_param('q');                             // keresőszó
-$brand     = get_param('brand');                         // márka
-$type      = get_param('type');                          // termék típus (enum)
+// Szűrők
+$q           = get_param('q');
+$brand       = get_param('brand');
+$allowedTypes= ['shampoo','conditioner','mask','treatment','styling','other'];
+$type        = get_enum('type', $allowedTypes, '');
+$types       = $allowedTypes; // <- kell a legördülőhöz
+$sort        = get_enum('sort', ['name_asc','name_desc','price_asc','price_desc'], 'name_asc');
 
-// Min/Max ár: a felhasználó mezőiben szóközzel formázott számok jöhetnek -> tisztítás
-$min_price_in = get_param('min_price');
-$max_price_in = get_param('max_price');
-$min_price = ($min_price_in !== '') ? preg_replace('/\D+/', '', $min_price_in) : '';
-$max_price = ($max_price_in !== '') ? preg_replace('/\D+/', '', $max_price_in) : '';
+// Min/Max ár (mezőkben ezres tagolás lehet -> tisztítás)
+$min_price = get_int('min_price', 0, 0, 100000);
+$max_price = get_int('max_price', 100000, 0, 100000);
 
-$sort      = get_param('sort', 'name_asc');              // rendezés
-$page      = max(1, (int) get_param('page', 1));         // pagináció
-
-// Engedélyezett típusok és rendezési opciók (UI és validáció)
-$allowedTypes = ['shampoo','conditioner','mask','treatment','styling','other'];
+// Rendezés opciók
 $sortOptions = [
   'name_asc'  => ['label' => 'Név (A–Z)',    'sql' => 'name ASC'],
   'name_desc' => ['label' => 'Név (Z–A)',    'sql' => 'name DESC'],
   'price_asc' => ['label' => 'Ár (növekvő)', 'sql' => 'price ASC'],
   'price_desc'=> ['label' => 'Ár (csökkenő)','sql' => 'price DESC'],
 ];
-if (!isset($sortOptions[$sort])) $sort = 'name_asc';
-if ($type !== '' && !in_array($type, $allowedTypes, true)) $type = '';
+$page = max(1, (int)($_GET['page'] ?? 1));
 
-// --- Márkák a szűrőhöz ---
+// Ár csúszka fix tartomány
+$rangeMin = 0; $rangeMax = 100000;
+$curMin = max($rangeMin, min($min_price, $rangeMax));
+$curMax = max($rangeMin, min($max_price, $rangeMax));
+if ($curMin > $curMax) { $t=$curMin; $curMin=$curMax; $curMax=$t; }
+
+// --- Márkák listája ---
 $brands = [];
-$types  = $allowedTypes;
 if ($mysqli) {
   try {
     $res = $mysqli->query("SELECT DISTINCT brand FROM products WHERE is_active=1 ORDER BY brand ASC");
@@ -55,61 +47,42 @@ if ($mysqli) {
 }
 if (!$mysqli || empty($brands)) { $brands = ["Garnier","Schwarzkopf","L'Oréal","Kérastase"]; }
 
-// --- Ár csúszka fix tartománya ---
-$rangeMin = 0;
-$rangeMax = 100000; // fixen 0–100 000 Ft
-
-// aktuális min/max (clamp + konzisztencia)
-$curMin = (is_numeric($min_price) ? (float)$min_price : $rangeMin);
-$curMax = (is_numeric($max_price) ? (float)$max_price : $rangeMax);
-$curMin = max($rangeMin, min($curMin, $rangeMax));
-$curMax = max($rangeMin, min($curMax, $rangeMax));
-if ($curMin > $curMax) { $t=$curMin; $curMin=$curMax; $curMax=$t; }
-
-// --- Termékek listázása szűréssel ---
-$items = []; $total=0; $pages=1; $offset=($page-1)*$PAGE_SIZE;
+// --- Termékek lekérdezése ---
+$items=[]; $total=0; $pages=1; $offset=($page-1)*$PAGE_SIZE;
 
 if ($mysqli) {
   $where = ["is_active=1"];
-  $params = []; $typesBind = '';
+  $params=[]; $typesBind='';
 
   if ($q !== '') {
-    $where[] = "(name LIKE CONCAT('%', ?, '%') OR description LIKE CONCAT('%', ?, '%') OR brand LIKE CONCAT('%', ?, '%'))";
-    $params[] = $q; $params[] = $q; $params[] = $q; $typesBind .= 'sss';
+    $where[]="(name LIKE CONCAT('%', ?, '%') OR description LIKE CONCAT('%', ?, '%') OR brand LIKE CONCAT('%', ?, '%'))";
+    $params[]=$q; $params[]=$q; $params[]=$q; $typesBind.='sss';
   }
-  if ($brand !== '') { $where[] = "brand = ?"; $params[] = $brand; $typesBind .= 's'; }
-  if ($type  !== '') { $where[] = "type = ?";  $params[] = $type;  $typesBind .= 's'; }
-  $where[] = "price >= ?"; $params[] = (float)$curMin; $typesBind .= 'd';
-  $where[] = "price <= ?"; $params[] = (float)$curMax; $typesBind .= 'd';
+  if ($brand !== '') { $where[]="brand = ?"; $params[]=$brand; $typesBind.='s'; }
+  if ($type  !== '') { $where[]="type = ?";  $params[]=$type;  $typesBind.='s'; }
+  $where[]="price >= ?"; $params[]=(float)$curMin; $typesBind.='d';
+  $where[]="price <= ?"; $params[]=(float)$curMax; $typesBind.='d';
 
   $whereSql = 'WHERE '.implode(' AND ', $where);
   $orderSql = 'ORDER BY '.$sortOptions[$sort]['sql'];
 
-  // count
-  $sqlCount = "SELECT COUNT(*) AS c FROM products $whereSql";
-  $stmt = $mysqli->prepare($sqlCount);
+  $stmt = $mysqli->prepare("SELECT COUNT(*) c FROM products $whereSql");
   $stmt->bind_param($typesBind, ...$params);
   $stmt->execute();
   $total = (int)($stmt->get_result()->fetch_assoc()['c'] ?? 0);
   $pages = max(1, (int)ceil($total / $PAGE_SIZE));
-  if ($page > $pages) { $page = $pages; $offset = ($page-1)*$PAGE_SIZE; }
+  if ($page > $pages) { $page=$pages; $offset=($page-1)*$PAGE_SIZE; }
 
-  // items
-  $sqlItems = "SELECT id, brand, name, price, image, type
-               FROM products
-               $whereSql
-               $orderSql
-               LIMIT ? OFFSET ?";
-  $stmt = $mysqli->prepare($sqlItems);
+  $stmt = $mysqli->prepare("SELECT id, brand, name, price, image, type FROM products $whereSql $orderSql LIMIT ? OFFSET ?");
   $bindTypes = $typesBind.'ii';
   $bindParams = array_merge($params, [$PAGE_SIZE, $offset]);
   $stmt->bind_param($bindTypes, ...$bindParams);
   $stmt->execute();
   $res = $stmt->get_result();
-  while ($row = $res->fetch_assoc()) $items[] = $row;
+  while ($row = $res->fetch_assoc()) $items[]=$row;
 
 } else {
-  // Dummy (DB nélkül)
+  // Dummy adatok + szűrés/rendezés
   $all = [
     ['id'=>1,'brand'=>'Garnier','name'=>'Vitamin+ Repair Conditioner','type'=>'conditioner','price'=>3490.00,'image'=>'uploads/products/1.jpg'],
     ['id'=>2,'brand'=>'Schwarzkopf','name'=>'Deep Cleanse Shampoo','type'=>'shampoo','price'=>4190.00,'image'=>'uploads/products/2.jpg'],
@@ -125,32 +98,21 @@ if ($mysqli) {
     ['id'=>12,'brand'=>'Kérastase','name'=>'Volume Boost Mask','type'=>'mask','price'=>9990.00,'image'=>'uploads/products/12.jpg'],
     ['id'=>13,'brand'=>'Garnier','name'=>'Fructis Shine Conditioner','type'=>'conditioner','price'=>3790.00,'image'=>'uploads/products/13.jpg'],
   ];
-
-  // szűrés
   $items = array_filter($all, function($p) use($q,$brand,$type,$curMin,$curMax){
     if ($brand !== '' && strcasecmp($p['brand'],$brand)!==0) return false;
-    if ($type  !== '' && $p['type'] !== $type) return false;
-    if ($q !== '') {
-      $hit = stripos($p['name'],$q)!==false || stripos($p['brand'],$q)!==false;
-      if (!$hit) return false;
-    }
-    if ($p['price'] < (float)$curMin) return false;
-    if ($p['price'] > (float)$curMax) return false;
+    if ($type !== ''  && $p['type'] !== $type) return false;
+    if ($q !== '' && stripos($p['name'].$p['brand'], $q) === false) return false;
+    if ($p['price'] < (float)$curMin || $p['price'] > (float)$curMax) return false;
     return true;
   });
-
-  // rendezés
   usort($items, function($a,$b) use($sort){
     switch($sort){
-      case 'price_asc':  return $a['price'] <=> $b['price'];
-      case 'price_desc': return $b['price'] <=> $a['price'];
-      case 'name_desc':  return strcasecmp($b['name'],$a['name']);
-      case 'name_asc':
-      default:           return strcasecmp($a['name'],$b['name']);
+      case 'price_asc': return $a['price'] <=> $b['price'];
+      case 'price_desc':return $b['price'] <=> $a['price'];
+      case 'name_desc': return strcasecmp($b['name'],$a['name']);
+      default:          return strcasecmp($a['name'],$b['name']);
     }
   });
-
-  // lapozás
   $total = count($items);
   $pages = max(1, (int)ceil($total / $PAGE_SIZE));
   $page  = min($page, $pages);
@@ -158,15 +120,11 @@ if ($mysqli) {
   $items = array_slice($items, $offset, $PAGE_SIZE);
 }
 
-// --- Segéd: query string építő lapozáshoz (page kivételével) ---
+// Lapozó helper
 function qs_without_page(){
-  $params = $_GET;
-  unset($params['page']);
-  $pairs = [];
-  foreach($params as $k=>$v){
-    if ($v === '' || $v === null) continue;
-    $pairs[] = urlencode($k) . '=' . urlencode($v);
-  }
+  $params = $_GET; unset($params['page']);
+  $pairs=[];
+  foreach($params as $k=>$v){ if($v===''||$v===null) continue; $pairs[] = urlencode($k).'='.urlencode($v); }
   return $pairs ? ('&'.implode('&',$pairs)) : '';
 }
 ?>
@@ -182,14 +140,10 @@ function qs_without_page(){
 
   <style>
     :root{
-      --hh-primary: #c76df0;
-      --hh-dark:    #1c1a27;
-      --hh-muted:   #6c6a75;
-      --hh-bg:      #faf7ff;
-      --range-bg:   #e9d9fb;
-      --range-fill: #c76df0;
+      --hh-primary:#c76df0; --hh-dark:#1c1a27; --hh-muted:#6c6a75; --hh-bg:#faf7ff;
+      --range-bg:#e9d9fb; --range-fill:#c76df0;
     }
-    body{ background: var(--hh-bg); color: var(--hh-dark); }
+    body{ background:var(--hh-bg); color:var(--hh-dark); }
     .navbar{ background:#fff; box-shadow:0 6px 20px rgba(0,0,0,.06); }
     .navbar-brand{ font-weight:800; letter-spacing:.5px; color:var(--hh-dark); }
     .navbar-brand .dot{ color:var(--hh-primary); }
@@ -198,11 +152,7 @@ function qs_without_page(){
 
     .page-title{ font-weight:800; letter-spacing:.4px; }
     .filter-card{ background:#fff; border-radius:14px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.06); }
-    .product-card{
-      border:0; border-radius:16px; overflow:hidden; background:#fff;
-      box-shadow:0 10px 30px rgba(0,0,0,.06);
-      transition:transform .2s ease, box-shadow .2s ease;
-    }
+    .product-card{ border:0; border-radius:16px; overflow:hidden; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,.06); transition:transform .2s, box-shadow .2s; }
     .product-card:hover{ transform:translateY(-3px); box-shadow:0 14px 36px rgba(0,0,0,.1); }
     .product-card img{ height:210px; object-fit:cover; }
     .brand-badge{ background:#f3e7ff; color:#7e3dbf; font-weight:700; border-radius:999px; padding:.25rem .65rem; font-size:.75rem; }
@@ -210,77 +160,20 @@ function qs_without_page(){
     .form-select, .form-control{ border-radius:10px; }
     .btn-cta{ background:var(--hh-primary); border:0; font-weight:700; letter-spacing:.3px; }
     .btn-cta:hover{ filter:brightness(1.05); }
-
-    /* Dual range slider */
     .range-wrap{ position:relative; }
     .multi-range{ position:relative; height:36px; }
-    .multi-range input[type=range]{
-      position:absolute; left:0; right:0; top:8px;
-      pointer-events:none; -webkit-appearance:none; width:100%; background:transparent; height:0;
-    }
-    .multi-range input[type=range]::-webkit-slider-thumb{
-      pointer-events:auto; -webkit-appearance:none; width:18px; height:18px; border-radius:50%;
-      background:var(--hh-primary); box-shadow:0 2px 8px rgba(0,0,0,.2);
-      border:2px solid #fff; margin-top:-7px;
-    }
-    .multi-range input[type=range]::-moz-range-thumb{
-      pointer-events:auto; width:18px; height:18px; border-radius:50%;
-      background:var(--hh-primary); border:2px solid #fff;
-    }
-    .range-track{
-      position:absolute; left:0; right:0; top:16px; height:4px; border-radius:999px;
-      background:var(--range-bg);
-    }
-    .range-fill{
-      position:absolute; top:16px; height:4px; border-radius:999px; background:var(--range-fill);
-    }
+    .multi-range input[type=range]{ position:absolute; left:0; right:0; top:8px; pointer-events:none; -webkit-appearance:none; width:100%; background:transparent; height:0; }
+    .multi-range input[type=range]::-webkit-slider-thumb{ pointer-events:auto; -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--hh-primary); box-shadow:0 2px 8px rgba(0,0,0,.2); border:2px solid #fff; margin-top:-7px; }
+    .multi-range input[type=range]::-moz-range-thumb{ pointer-events:auto; width:18px; height:18px; border-radius:50%; background:var(--hh-primary); border:2px solid #fff; }
+    .range-track{ position:absolute; left:0; right:0; top:16px; height:4px; border-radius:999px; background:var(--range-bg); }
+    .range-fill{ position:absolute; top:16px; height:4px; border-radius:999px; background:var(--range-fill); }
     .range-values{ display:flex; gap:.75rem; align-items:center; margin-top:8px; flex-wrap:wrap; }
     .range-values .input-group{ min-width:220px; max-width:240px; }
-    input[type=number]::-webkit-outer-spin-button,
-    input[type=number]::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
-    input[type=number]{ -moz-appearance:textfield; }
   </style>
 </head>
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg sticky-top">
-  <div class="container">
-    <a class="navbar-brand" href="/">Hair <span class="dot">Heaven</span></a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#hhNav" aria-controls="hhNav" aria-expanded="false" aria-label="Menü">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="hhNav">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link" href="/">Főoldal</a></li>
-        <li class="nav-item"><a class="nav-link active" href="/aruhaz.php">Áruház</a></li>
-        <li class="nav-item"><a class="nav-link" href="/szolgaltatasok.php">Szolgáltatások</a></li>
-        <li class="nav-item"><a class="nav-link" href="/ugyfelek.php">Elégedett vásárlók</a></li>
-      </ul>
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item me-2">
-          <a class="btn btn-sm btn-outline-dark" href="/kosar.php"><i class="fa-solid fa-bag-shopping me-1"></i> Kosár</a>
-        </li>
-        <?php if ($isLogged): ?>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-              <i class="fa-solid fa-user"></i> <?= e($username ?: 'Profil') ?>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="/profil.php">Profilom</a></li>
-              <li><a class="dropdown-item" href="/rendeleseim.php">Rendeléseim</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" href="/logout.php">Kijelentkezés</a></li>
-            </ul>
-          </li>
-        <?php else: ?>
-          <li class="nav-item"><a class="btn btn-sm btn-cta text-white" href="/belepes.php"><i class="fa-solid fa-right-to-bracket me-1"></i> Bejelentkezés</a></li>
-        <?php endif; ?>
-      </ul>
-    </div>
-  </div>
-</nav>
-
+<?php $activePage = 'shop'; include __DIR__ . '/navbar.php'; ?>
 <!-- FEJLÉC -->
 <div class="container mt-4">
   <div class="d-flex align-items-end justify-content-between flex-wrap gap-2">
@@ -456,7 +349,6 @@ function qs_without_page(){
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 (function(){
-  // --- közös segédek ---
   const form = document.getElementById('filterForm');
   const wrap = document.querySelector('.multi-range');
   if(!wrap) return;
@@ -477,6 +369,7 @@ function qs_without_page(){
   const step= parseInt(r1.getAttribute('step'),10) || 10;
 
   function clamp(v){ return Math.max(min, Math.min(max, v)); }
+  
   function formatThousands(n){
     const s = String(n).replace(/\D/g,'');
     return s.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -507,7 +400,6 @@ function qs_without_page(){
     drawFill(v1, v2);
   }
 
-  // élő formázás
   [f1,f2].forEach(el=>{
     el.addEventListener('input', ()=>{
       const raw = el.value.replace(/\D/g,'');
@@ -519,36 +411,27 @@ function qs_without_page(){
   r1.addEventListener('input', syncFromRanges);
   r2.addEventListener('input', syncFromRanges);
 
-  // elküldés előtt szóközök eltávolítása
   form.addEventListener('submit', function(){
     f1.value = (f1.value||'').replace(/\D/g,'');
     f2.value = (f2.value||'').replace(/\D/g,'');
   });
 
-  // --- Szűrők visszaállítása ---
   resetBtn.addEventListener('click', function(){
-    // mezők alapra
     qInput.value = '';
     brandSel.value = '';
     typeSel.value  = '';
     sortSel.value  = 'name_asc';
 
-    // ár alapra
     r1.value = min; r2.value = max;
     f1.value = formatThousands(min);
     f2.value = formatThousands(max);
     drawFill(min, max);
 
-    // tisztítás submit előtt
-    const hiddenMin = (f1.value||'').replace(/\D/g,'');
-    const hiddenMax = (f2.value||'').replace(/\D/g,'');
-    f1.value = hiddenMin;
-    f2.value = hiddenMax;
-
+    f1.value = (f1.value||'').replace(/\D/g,'');
+    f2.value = (f2.value||'').replace(/\D/g,'');
     form.submit();
   });
 
-  // első rajz
   syncFromFields();
 })();
 </script>
