@@ -1,1 +1,1 @@
-Regisztráció, bejelentkezés, több termék, szolgáltatás& időpont foglalás, admin, felhasználó profilok, carousel a főoldalon, admin készlet nyílván tartás, admin termék feltöltés és készlet módosítás, KOSÁR
+Regisztráció, bejelentkezés, több termék, szolgáltatás& időpont foglalás, admin, felhasználó profilok, carousel a főoldalon, admin készlet nyílván tartás, admin termék feltöltés és készlet módosítás, KOSÁR, RENDELÉSEIM, termék leírások
