@@ -72,3 +72,92 @@
   /* Kisebb esztétikai finomítás: ikon és szöveg távolság egységesen */
   .btn i { margin-right:.35rem; }
 
+/* =========================
+   NAVBAR & GLOBAL SIZING XL
+   ========================= */
+:root{
+  --hh-nav-height: 72px;
+  --hh-nav-font:   1rem;   /* nav linkek alap méret */
+  --hh-nav-brand:  1.65rem;/* márkanév méret */
+  --hh-nav-btn-py: .60rem; /* nav gomb függőleges padding */
+  --hh-nav-btn-px: 1.00rem;
+  --hh-avatar:     62px;   /* navbar avatar átmérő */
+}
+
+/* nagyobb kijelzőkön még egy kicsi plusz */
+@media (min-width: 992px){
+  :root{
+    --hh-nav-height: 80px;
+    --hh-nav-font:   1.06rem;
+    --hh-nav-brand:  1.85rem;
+    --hh-avatar:     62px;
+  }
+}
+
+/* NAVBAR blokkok */
+.navbar{
+  min-height: var(--hh-nav-height);
+  background:#fff;
+  box-shadow:0 6px 20px rgba(0,0,0,.06);
+}
+.navbar-brand{
+  font-weight:800;
+  letter-spacing:.5px;
+  font-size: var(--hh-nav-brand);
+  color: var(--hh-dark);
+}
+.navbar-brand .dot{ color: var(--hh-primary); }
+
+.navbar .nav-link{
+  font-weight: 600;
+  font-size: var(--hh-nav-font);
+  padding: .6rem .9rem;
+  color: var(--hh-dark);
+}
+.navbar .nav-link:hover,
+.navbar .nav-link.active{
+  color: var(--hh-primary);
+}
+
+/* navbar gombok kényelmesebb méretben */
+.navbar .btn,
+.navbar .btn-cta{
+  font-size: .98rem;
+  padding: var(--hh-nav-btn-py) var(--hh-nav-btn-px);
+  border-radius: 12px;
+}
+
+/* avatar a navbarban */
+.navbar .profile-thumb{
+  width: var(--hh-avatar);
+  height: var(--hh-avatar);
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+}
+
+/* =========================
+   PROFIL – nagyobb előnézet
+   ========================= */
+.avatar-preview{
+  width: 215px;
+  height: 215px;
+  border-radius: 25%;
+  object-fit: cover;
+  border: 4px solid #fff;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
+@media (max-width: 576px){
+  .avatar-preview{ width: 130px; height: 130px; }
+}
+
+/* általános CTA gomb – marad a mozgékony, nem “eltűnős” hover */
+.btn-cta{
+  background: var(--hh-primary);
+  border:0;
+  font-weight:700;
+  letter-spacing:.3px;
+}
+.btn-cta:hover{ filter: brightness(1.05); transform: translateY(-1px); }
+.btn-cta:active{ transform: translateY(0); }

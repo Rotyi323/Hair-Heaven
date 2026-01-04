@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: 127.0.0.1
--- Létrehozás ideje: 2026. Jan 02. 15:09
+-- Létrehozás ideje: 2026. Jan 04. 15:26
 -- Kiszolgáló verziója: 10.4.27-MariaDB
 -- PHP verzió: 8.2.0
 
@@ -274,7 +274,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `avatar`, `role`, `created_at`, `updated_at`) VALUES
 (1, 'Lakatos Brendon', 'lakatos@gmail.com', '$2y$10$c/G2RWUjlqlDJoc436BNduAwN5vHFsPnXXvFm6xGxpW7UZWiACIze', NULL, 'customer', '2026-01-02 14:41:21', '2026-01-02 14:41:47'),
 (3, 'Knyihár Roland', 'knyiharroland@gmail.com', '$2y$10$7V/mwnWtgshqYBbQSjIy1.ayx9KX.oxB0s37LXPmGKK.RdM9jMNCm', NULL, 'customer', '2026-01-02 14:55:56', '2026-01-02 14:55:56'),
-(4, 'Admin', 'admin@gmail.com', '$2y$10$jb5qW.5z7LWDkBH6jWxhROn0LgpwII0KTCIOz79/dPoH8Xh0XU26W', NULL, 'customer', '2026-01-02 14:58:34', '2026-01-02 14:58:34');
+(4, 'Admin', 'admin@gmail.com', '$2y$10$Fc9z1QVMu.KZksP3y62Vze0X9SN4y1/0E4mY3aAQQaoeapadmHUT.', '/uploads/avatars/u4_1767534722.jpg', 'customer', '2026-01-02 14:58:34', '2026-01-04 14:52:02');
 
 --
 -- Indexek a kiírt táblákhoz

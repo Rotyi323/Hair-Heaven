@@ -45,8 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   // CSRF
-  if (function_exists('csrf_verify')) {
-    if (!csrf_verify()) $errors[] = 'Biztonsági hiba (CSRF). Kérlek próbáld újra.';
+  if (function_exists('csrf_validate')) {
+    // dob és leáll, ha nem oké – de biztos ami biztos:
+    try { csrf_validate(); } catch (Throwable $e) { $errors[] = 'Biztonsági hiba (CSRF). Kérlek próbáld újra.'; }
   } else {
     $token = $_POST['_token'] ?? '';
     if (!hash_equals($_SESSION['_token_login'] ?? '', $token)) {
@@ -64,9 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if (empty($errors) && $mysqli) {
     try {
-      // FIGYELEM: NEM kérünk le avatar-t, mert a táblában nincs ilyen oszlop
+      // LEKÉRÜNK MINDENT, AVATARRAL EGYÜTT
       $stmt = $mysqli->prepare("
-        SELECT id, username, email, password_hash, role
+        SELECT id, username, email, password_hash, role, avatar
         FROM users
         WHERE email = ? OR username = ?
         LIMIT 1
@@ -86,16 +87,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Reset rate limit
         $_SESSION[$rl_key] = ['count'=>0, 'start'=>time()];
 
+        // Alap avatar, ha nincs megadva a DB-ben
+        $defaultAvatar = '/assets/img/avatar-default.svg';
+        $avatarPath = (!empty($user['avatar'])) ? $user['avatar'] : $defaultAvatar;
+
         // Bejelentkeztetés
         $_SESSION['belepve']  = true;
         $_SESSION['user_id']  = (int)$user['id'];
         $_SESSION['username'] = $user['username'] ?? null;
         $_SESSION['email']    = $user['email'] ?? null;
         $_SESSION['role']     = $user['role'] ?? 'customer';
-        $_SESSION['avatar']   = null; // majd később, ha lesz oszlop/feltöltés
+        $_SESSION['avatar']   = $avatarPath;
 
         header('Location: /');
-        echo '<!doctype html><meta http-equiv="refresh" content="0;url=/">';
         exit;
       } else {
         $_SESSION[$rl_key]['count']++;
@@ -103,9 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
 
     } catch (Throwable $ex) {
-      // ide estél bele korábban az "avatar" oszlop hiánya miatt
       $errors[] = 'Váratlan hiba történt. Próbáld újra később.';
-      // Ha szeretnéd, fejlesztői log:
       // error_log('Login error: '.$ex->getMessage());
     }
   } elseif (!$mysqli) {
@@ -122,23 +124,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<link rel="stylesheet" href="/assets/hairheaven.css">
+  <link rel="stylesheet" href="/assets/hairheaven.css">
   <style>
     :root{ --hh-primary:#c76df0; --hh-dark:#1c1a27; --hh-muted:#6c6a75; --hh-bg:#faf7ff; }
     body{ background:var(--hh-bg); color:var(--hh-dark); }
-    .navbar{ background:#fff; box-shadow:0 6px 20px rgba(0,0,0,.06); }
-    .navbar-brand{ font-weight:800; letter-spacing:.5px; color:var(--hh-dark); }
-    .navbar-brand .dot{ color:var(--hh-primary); }
-    .nav-link{ font-weight:600; color:var(--hh-dark); }
-    .nav-link:hover, .nav-link.active{ color:var(--hh-primary); }
-
     .auth-card{ background:#fff; border-radius:16px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.06); }
     .form-control{ border-radius:10px; }
     .page-title{ font-weight:800; letter-spacing:.3px; }
     .muted{ color:var(--hh-muted); }
   </style>
-  <link rel="stylesheet" href="/assets/hairheaven.css">
-
 </head>
 <body>
 

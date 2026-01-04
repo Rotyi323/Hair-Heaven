@@ -5,10 +5,7 @@ require_once __DIR__ . '/biztonsag.php'; // <- itt készül a $GLOBALS['CSP_NONC
 require_once __DIR__ . '/connect.php';
 
 $mysqli = db(); // mysqli|null
-if (file_exists(__DIR__ . '/konfiguracio.php')) {
-  include __DIR__ . '/konfiguracio.php';
-  if (!isset($mysqli) || !($mysqli instanceof mysqli)) $mysqli = null;
-}
+
 
 // --- Helpers ---
 function e($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
@@ -245,9 +242,9 @@ function qs_without_page(){
 <body>
 
 <!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg sticky-top">
+<?php $activePage = 'shop'; include __DIR__ . '/navbar.php'; ?>
+
   <div class="container">
-    <a class="navbar-brand" href="/">Hair <span class="dot">Heaven</span></a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#hhNav" aria-controls="hhNav" aria-expanded="false" aria-label="Menü">
       <span class="navbar-toggler-icon"></span>
     </button>
