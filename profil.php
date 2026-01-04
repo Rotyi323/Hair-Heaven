@@ -155,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Avatar megjelenítés (fallback)
-$avatarUrl = !empty($user['avatar']) ? $user['avatar'] : '/assets/img/avatar-placeholder.png';
+$avatarUrl = !empty($user['avatar']) ? $user['avatar'] : '/assets/img/avatar-placeholder.svg';
 ?>
 <!doctype html>
 <html lang="hu">

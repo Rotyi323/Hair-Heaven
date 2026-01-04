@@ -46,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   // CSRF
   if (function_exists('csrf_validate')) {
-    // dob és leáll, ha nem oké – de biztos ami biztos:
     try { csrf_validate(); } catch (Throwable $e) { $errors[] = 'Biztonsági hiba (CSRF). Kérlek próbáld újra.'; }
   } else {
     $token = $_POST['_token'] ?? '';
@@ -65,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   if (empty($errors) && $mysqli) {
     try {
-      // LEKÉRÜNK MINDENT, AVATARRAL EGYÜTT
+      // avatar mezővel együtt
       $stmt = $mysqli->prepare("
         SELECT id, username, email, password_hash, role, avatar
         FROM users
@@ -87,9 +86,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Reset rate limit
         $_SESSION[$rl_key] = ['count'=>0, 'start'=>time()];
 
-        // Alap avatar, ha nincs megadva a DB-ben
-        $defaultAvatar = '/assets/img/avatar-default.svg';
-        $avatarPath = (!empty($user['avatar'])) ? $user['avatar'] : $defaultAvatar;
+        // >>> Fallback avatar útvonal (egységes)
+        $defaultAvatar = '/assets/img/avatar-placeholder.svg';
+        $avatarPath    = !empty($user['avatar']) ? $user['avatar'] : $defaultAvatar;
 
         // Bejelentkeztetés
         $_SESSION['belepve']  = true;
@@ -97,6 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['username'] = $user['username'] ?? null;
         $_SESSION['email']    = $user['email'] ?? null;
         $_SESSION['role']     = $user['role'] ?? 'customer';
+        // >>> FONTOS: mindig a kiszámolt $avatarPath kerüljön be
         $_SESSION['avatar']   = $avatarPath;
 
         header('Location: /');
