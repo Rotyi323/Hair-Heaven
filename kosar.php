@@ -1,203 +1,193 @@
 <?php
+// Hair Heaven – Kosár (session alapú)
 session_start();
-error_reporting(E_ERROR | E_PARSE);
+require_once __DIR__ . '/biztonsag.php';
+require_once __DIR__ . '/connect.php';
+
+$mysqli   = db();
+$isLogged = !empty($_SESSION['belepve']);
+
+function e($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+
+// --- Session kosár: [ product_id => qty, ... ]
+$cart = $_SESSION['cart'] ?? [];
+$items = [];
+$grand = 0.0;
+
+if (!empty($cart) && $mysqli) {
+  // termékek behúzása egyben
+  $ids = array_keys($cart);
+  $in  = implode(',', array_fill(0, count($ids), '?'));
+  $types = str_repeat('i', count($ids));
+  $sql = "SELECT id, name, price, image FROM products WHERE id IN ($in)";
+  $stmt = $mysqli->prepare($sql);
+  $stmt->bind_param($types, ...$ids);
+  $stmt->execute();
+  $res = $stmt->get_result();
+  $map = [];
+  while ($row = $res->fetch_assoc()) $map[(int)$row['id']] = $row;
+  $stmt->close();
+
+  foreach ($cart as $pid=>$qty) {
+    $qty = max(0, (int)$qty);
+    if ($qty === 0) continue;
+    $p = $map[(int)$pid] ?? null;
+    if (!$p) continue;
+    $price = (float)$p['price'];
+    $sub   = $price * $qty;
+    $items[] = [
+      'product_id' => (int)$pid,
+      'name'  => $p['name'],
+      'price' => $price,
+      'qty'   => $qty,
+      'sub'   => $sub,
+      'image' => $p['image'] ?: '/assets/img/placeholder.png',
+    ];
+    $grand += $sub;
+  }
+}
 ?>
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="hu">
-
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--Bootstrap5-->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Ikon-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kosár – Hair Heaven</title>
 
-    <title>Kosár</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/assets/hairheaven.css">
 
-    <style>
-        label,
-        input {
-            font-weight: bold;
-            font-size: 20px;
-            border: 10px black;
-            max-width: 34rem;
-        }
+  <style>
+    :root{ --hh-primary:#c76df0; --hh-dark:#1c1a27; --hh-muted:#6c6a75; --hh-bg:#faf7ff; }
+    body{ background:var(--hh-bg); color:var(--hh-dark); }
+    .cart-card{ background:#fff; border-radius:16px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.06); }
+    .cart-thumb{ width:70px;height:70px; border-radius:10px; object-fit:cover; background:#f7f3ff; border:1px solid #f0eaff; }
 
-        select,
-        input[type=text],
-        [type=email] {
-            box-sizing: border-box !important;
-            border: 3px solid rgb(41, 2, 2) !important;
-        }
+    /* mennyiség vezérlő */
+    .qty-wrap{ display:flex; align-items:center; gap:.5rem; justify-content:center; }
+    .qty-btn{
+      min-width: 40px; height:40px; display:inline-flex; align-items:center; justify-content:center;
+      border:1px solid #e4e4ea; border-radius:10px; background:#fff;
+    }
+    .qty-btn:hover{ border-color:#d2cde7; background:#f8f5ff; }
+    .qty-input{
+      width: 64px; height:40px; text-align:center; font-weight:700;
+      border:1px solid #e4e4ea; border-radius:10px; background:#fff;
+      -moz-appearance:textfield;
+    }
+    .qty-input::-webkit-outer-spin-button,
+    .qty-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
 
-        .keret {
-            background-color: #84d6e8;
-            border: 0.4rem solid black;
-            border-radius: 1rem;
-            padding: 1.2rem;
-        }
-    </style>
+    .totals-line{ font-weight:800; }
+    .btn-cta{ background:var(--hh-primary); border:0; font-weight:700; letter-spacing:.3px; }
+    .btn-cta:hover{ filter:brightness(1.05); }
+  </style>
 </head>
-
 <body>
-    <?php include("navbar.php");
-    ?>
 
-    <!-- Fejléc -->
-    <div class="container">
-        <div class="col-12 mx-auto text-center">
-            <h2><b>Kosár</b></h2>
-        </div>
-        <!-- Ablak kezdet -->
-        <div class="keret">
-            <div class="row">
-                <!-- Kosár -->
-                <div class="col-md-4 order-md-2 mb-4">
-                    <h4 class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted" style="font-weight: bold;">Ön kosara:</span>
-                    </h4>
+<?php $activePage = ''; include __DIR__ . '/navbar.php'; ?>
 
-                    <ul class="list-group mb-3">
-                        <?php //Kosár elemeinek megjelenítése, kosár tartalma, mennyiség, ár ezres tagolás, elem törlése
-                        
-                        for ($i = 0; $i < $_SESSION["cart"]["num_of_items"]; $i++) {
-                            echo '
-                                  <li class="list-group-item d-flex justify-content-between lh-condensed">
-                                   <div>
-                                     <h5 class="my-auto">' . $_SESSION["cart"]["items"][$i]["name"] . '</h5>
-                                     <small class="text-muted">' . $_SESSION["cart"]["items"][$i]["quantity"] . ' db</small>
-                
-                                     </div>
-                                     <span class="text-muted">' . number_format($_SESSION["cart"]["items"][$i]["Item_Total"], 0, " ", " ") . ' Ft</span> 
-                                     <a class="btn btn-danger" href="/api/deleteCartItem.php?index=' . $i . '"><i class="fa fa-trash-o"></i></a>
-                                      </li>
-                                         ';
-                                           } ;
-                        ?>
+<div class="container my-4">
+  <h1 class="page-title mb-3">Kosár</h1>
 
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span>Összesen</span>
-                            <strong>
-                                <?php echo (number_format($_SESSION["cart"]["Total"], 0, " ", " ")) ?> Ft
-                            </strong>
-                        </li>
-                    </ul>
-                </div>
-                <!-- Vásárló adatai -->
-                <div class="col-md-8 order-md-1">
-                    <h4 class="mb-3" style="font-weight: bold;">Vásárló adatai</h4>
-                    <!-- Form kezdet -->
-                    <form class="needs-validation" id="order" method="post" action="/api/placeOrder.php" novalidate="">
-                        <!-- Név -->
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="firstName">Teljes név</label>
-                                <input type="text" class="form-control" id="nev" name="nev" placeholder="Teszt Elek"
-                                    value="" maxlength="100" required>
-                            </div>
-                        </div>
-
-                        <!-- Email -->
-                        <div class="mb-3">
-                            <label for="email">E-mail <span class="text-muted"></span></label>
-                            <input type="email" class="form-control" id="email" name="email"
-                                placeholder="TesztElek@példa.com" maxlength="100" required>
-                        </div>
-
-                        <!-- Számlázási cím -->
-                        <div class="mb-3">
-                            <label for="address">Számlázási cím</label>
-                            <input type="text" class="form-control" id="cim" name="cim" placeholder="Város utca házszám"
-                                maxlength="255" required>
-                        </div>
-
-                        <!-- Ország -->
-                        <div class="row">
-                            <div class="col-md-5 mb-3">
-                                <label for="country">Ország</label>
-                                <input type="text" class="form-control" id="orszag" name="orszag"
-                                    placeholder="Magyarország" maxlength="30" required>
-                            </div>
-
-                            <!-- Vármegye -->
-                            <div class="col-md-4 mb-3">
-                                <label for="state">Vármegye</label>
-                                <input type="text" class="form-control" id="megye" name="megye"
-                                    placeholder="Békés vármegye" maxlength="50" required>
-                            </div>
-
-                            <!-- Irányítószám -->
-                            <div class="col-md-3 mb-3">
-                                <label for="zip">Irányítószám</label>
-                                <input type="text" class="form-control" id="irszam" name="irszam" placeholder="5600"
-                                    maxlength="10" required>
-                            </div>
-
-                        </div>
-                        <!-- Fizetési módok -->
-                        <hr class="mb-4">
-                        <h4 class="mb-3">Fizetési mód</h4>
-
-                        <div class="d-block my-3">
-                            <!-- Bankkártya -->
-                            <div class="custom-control custom-radio">
-                                <input id="credit" name="paymentMethod" type="radio" class="custom-control-input"
-                                    value="Bankkártya" checked="" required>
-                                <label class="custom-control-label" for="credit">Bankkártya</label>
-                            </div>
-                            <!-- Hitelkártya -->
-                            <div class="custom-control custom-radio">
-                                <input id="debit" name="paymentMethod" type="radio" class="custom-control-input"
-                                    value="Hitelkártya" required>
-                                <label class="custom-control-label" for="debit">Hitelkártya</label>
-                            </div>
-                            <!-- Paypal -->
-                            <div class="custom-control custom-radio">
-                                <input id="paypal" name="paymentMethod" type="radio" class="custom-control-input"
-                                    value="PayPal" required>
-                                <label class="custom-control-label" for="paypal">PayPal</label>
-                            </div>
-                        </div>
-
-                        <hr class="mb-4">
-                        <button class="btn btn-primary btn-lg btn-block" type="submit">Megrendelem &raquo;</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <footer class="my-5 pt-5 text-muted text-center text-small">
-            <p class="mb-1">© 2023 TelefonFix</p>
-        </footer>
-
+  <?php if (!$isLogged): ?>
+    <div class="alert alert-warning">
+      A vásárláshoz be kell jelentkezned. <a class="fw-bold" href="/belepes.php">Jelentkezz be</a> vagy <a class="fw-bold" href="/regisztracio.php">regisztrálj</a>!
     </div>
-    <script src="bootstrap.bundle.min.js"></script>
+  <?php endif; ?>
 
-    <!-- Siker vagy hiba üzenet kiírása Ajaxxal -->
-    <script>
-        $(document).ready(function () {
-            $("#order").on("submit", function (e) {
-                e.preventDefault();
-                $.ajax({
-                    type: "POST",
-                    url: "/api/placeOrder.php",
-                    data: $("#order").serialize(),
-                    dataType: "json",
-                    encode: true,
-                }).done(function (res) {
-                    if (res.success === true) {
-                        alert("Sikeres rendelés");
-                        location.reload();
-                    } else {
-                        alert("Hiba: " + res.error);
-                    }
-                });
-            });
-        });
-    </script>
+  <div class="cart-card">
+    <?php if (empty($items)): ?>
+      <div class="text-center py-5">
+        <p class="mb-3">A kosarad üres.</p>
+        <a href="/aruhaz.php" class="btn btn-outline-dark"><i class="fa-solid fa-arrow-left me-1"></i> Vissza az áruházba</a>
+      </div>
+    <?php else: ?>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Termék</th>
+              <th class="text-end">Egységár</th>
+              <th class="text-center">Mennyiség</th>
+              <th class="text-end">Részösszeg</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+          <?php foreach($items as $it): ?>
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-3">
+                  <img src="<?= e($it['image']) ?>" class="cart-thumb" alt="">
+                  <div>
+                    <div class="fw-bold"><?= e($it['name']) ?></div>
+                    <div class="text-muted small">#<?= (int)$it['product_id'] ?></div>
+                  </div>
+                </div>
+              </td>
+              <td class="text-end"><?= number_format($it['price'], 0, ',', ' ') ?> Ft</td>
+              <td class="text-center">
+                <div class="qty-wrap">
+                  <form method="post" action="/api/cart_dec.php" class="d-inline">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="product_id" value="<?= (int)$it['product_id'] ?>">
+                    <button class="qty-btn" type="submit" title="Csökkentés"><i class="fa-solid fa-minus"></i></button>
+                  </form>
+                  <input class="qty-input" type="number" readonly value="<?= (int)$it['qty'] ?>" aria-label="Mennyiség">
+                  <form method="post" action="/api/cart_inc.php" class="d-inline">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="product_id" value="<?= (int)$it['product_id'] ?>">
+                    <button class="qty-btn" type="submit" title="Növelés"><i class="fa-solid fa-plus"></i></button>
+                  </form>
+                </div>
+              </td>
+              <td class="text-end fw-bold"><?= number_format($it['sub'], 0, ',', ' ') ?> Ft</td>
+              <td class="text-end">
+                <form method="post" action="/api/cart_remove.php" class="d-inline">
+                  <?= csrf_field() ?>
+                  <input type="hidden" name="product_id" value="<?= (int)$it['product_id'] ?>">
+                  <button class="btn btn-link text-danger p-0" type="submit" title="Tétel törlése">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+          <?php endforeach; ?>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="text-end totals-line">Végösszeg:</td>
+              <td class="text-end totals-line"><?= number_format($grand, 0, ',', ' ') ?> Ft</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-2 mt-3">
+        <a class="btn btn-outline-dark" href="/aruhaz.php">
+          <i class="fa-solid fa-arrow-left me-1"></i> Vásárlás folytatása
+        </a>
+
+        <div class="d-flex gap-2">
+          <form method="post" action="/api/cart_clear.php">
+            <?= csrf_field() ?>
+            <button class="btn btn-outline-danger" type="submit">
+              <i class="fa-solid fa-trash me-1"></i> Kosár kiürítése
+            </button>
+          </form>
+
+          <a class="btn btn-cta text-white" href="<?= $isLogged ? '/penztar.php' : '/belepes.php' ?>">
+            <i class="fa-solid fa-cash-register me-1"></i> Tovább a pénztárhoz
+          </a>
+        </div>
+      </div>
+    <?php endif; ?>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

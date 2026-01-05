@@ -391,13 +391,16 @@ function qs_without_page(){
               <?php endif; ?>
               <div class="mt-auto d-grid gap-2">
                 <a class="btn btn-outline-dark" href="/termek.php?id=<?= (int)$p['id'] ?>">Részletek</a>
-                <form method="post" action="/api/cart_add.php">
-                  <input type="hidden" name="product_id" value="<?= (int)$p['id'] ?>">
-                  <input type="hidden" name="qty" value="1">
-                  <button class="btn btn-cta text-white w-100" type="submit">
-                    <i class="fa-solid fa-cart-plus me-1"></i> Kosárba
-                  </button>
-                </form>
+             <!-- TERMÉKKÁRTYA GOMBJA AZ ÁRUHÁZBAN -->
+<form method="post" action="/api/cart_add.php">
+  <?= csrf_field() ?>            
+  <input type="hidden" name="product_id" value="<?= (int)$p['id'] ?>">
+  <input type="hidden" name="qty" value="1">
+  <button class="btn btn-cta text-white w-100" type="submit">
+    <i class="fa-solid fa-cart-plus me-1"></i> Kosárba
+  </button>
+</form>
+
               </div>
             </div>
           </div>
