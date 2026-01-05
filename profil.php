@@ -17,7 +17,7 @@ $userId = (int)$_SESSION['user_id'];
 // --- akt. user betöltése ---
 $user = null;
 if ($mysqli) {
-  $stmt = $mysqli->prepare("SELECT id, username, email, avatar FROM users WHERE id = ? LIMIT 1");
+  $stmt = $mysqli->prepare("SELECT id, username, email, avatar, address FROM users WHERE id = ? LIMIT 1");
   $stmt->bind_param('i', $userId);
   $stmt->execute();
   $res = $stmt->get_result();
@@ -29,19 +29,27 @@ if (!$user) { http_response_code(404); exit('Felhasználó nem található.'); }
 // későbbi törléshez megőrizzük a jelenlegi avatar elérési útját
 $oldAvatar = $user['avatar'] ?? null;
 
-// --- üzenetek (flash-szerű) ---
+// --- üzenetek ---
 $okMsg = $errMsg = '';
 
 // --- POST feldolgozás (mentés) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   csrf_validate();
 
+  // 0) szállítási cím (min 10)
+  $address = trim((string)($_POST['address'] ?? ''));
+  if ($address !== '' && mb_strlen($address) < 10) {
+    $errMsg = 'A szállítási cím legalább 10 karakter legyen.';
+  }
+  if (mb_strlen($address) > 255) {
+    $errMsg = 'A szállítási cím túl hosszú (max. 255 karakter).';
+  }
+
   // 1) opcionális avatar feltöltés
-  $newAvatarPath = null; // relatív web útvonal (pl. /uploads/avatars/u1_...jpg)
-  if (!empty($_FILES['avatar']['name']) && is_uploaded_file($_FILES['avatar']['tmp_name'])) {
+  $newAvatarPath = null; // relatív web útvonal
+  if ($errMsg === '' && !empty($_FILES['avatar']['name']) && is_uploaded_file($_FILES['avatar']['tmp_name'])) {
     $f = $_FILES['avatar'];
 
-    // Fájl limit + MIME ellenőrzés
     if ($f['error'] !== UPLOAD_ERR_OK) {
       $errMsg = 'Avatar feltöltési hiba.';
     } elseif ($f['size'] > 5 * 1024 * 1024) {
@@ -59,19 +67,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       if (!$ext) {
         $errMsg = 'Csak JPG/PNG/WebP engedélyezett.';
       } else {
-        // Célkönyvtár
         $absRoot = rtrim($_SERVER['DOCUMENT_ROOT'] ?? __DIR__, '/');
         $dirAbs  = $absRoot . '/uploads/avatars';
         if (!is_dir($dirAbs)) @mkdir($dirAbs, 0775, true);
 
-        // Biztonságos fájlnév
-        $fname = 'u'.$userId.'_'.time().'.'.$ext;
+        $fname  = 'u'.$userId.'_'.time().'.'.$ext;
         $dstAbs = $dirAbs . '/' . $fname;
 
         if (!@move_uploaded_file($f['tmp_name'], $dstAbs)) {
           $errMsg = 'Nem sikerült menteni a fájlt.';
         } else {
-          // Webes elérési út (relatív)
           $newAvatarPath = '/uploads/avatars/'.$fname;
         }
       }
@@ -85,13 +90,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $pw2 = trim((string)($_POST['new_password_confirm'] ?? ''));
 
   $changePassword = ($pw1 !== '' || $pw2 !== '' || $pwCurrent !== '');
-  if ($changePassword) {
+  if ($errMsg === '' && $changePassword) {
     if (mb_strlen($pw1) < 8) {
       $pwOk = false; $errMsg = 'Az új jelszó legalább 8 karakter legyen.';
     } elseif ($pw1 !== $pw2) {
       $pwOk = false; $errMsg = 'Az új jelszavak nem egyeznek.';
     } else {
-      // Ellenőrizzük a jelenlegi jelszót
       $stmt = $mysqli->prepare("SELECT password_hash FROM users WHERE id=? LIMIT 1");
       $stmt->bind_param('i', $userId);
       $stmt->execute();
@@ -103,18 +107,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
 
-  // Ha nincs hiba: update(ek)
+  // 3) mentések
   if ($errMsg === '' && $mysqli) {
     $mysqli->begin_transaction();
     try {
+      // cím + (opcionálisan) avatar
       if ($newAvatarPath !== null) {
-        $stmt = $mysqli->prepare("UPDATE users SET avatar=?, updated_at=NOW() WHERE id=?");
-        $stmt->bind_param('si', $newAvatarPath, $userId);
+        $stmt = $mysqli->prepare("UPDATE users SET avatar=?, address=?, updated_at=NOW() WHERE id=?");
+        $stmt->bind_param('ssi', $newAvatarPath, $address, $userId);
         $stmt->execute();
         $stmt->close();
-
-        // session frissítés a navbárhoz
         $_SESSION['avatar'] = $newAvatarPath;
+      } else {
+        $stmt = $mysqli->prepare("UPDATE users SET address=?, updated_at=NOW() WHERE id=?");
+        $stmt->bind_param('si', $address, $userId);
+        $stmt->execute();
+        $stmt->close();
       }
 
       if ($changePassword && $pwOk) {
@@ -128,18 +136,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $mysqli->commit();
       $okMsg = 'Változtatások mentve.';
 
-      // Új adat visszatöltése (előnézethez is)
-      $stmt = $mysqli->prepare("SELECT id, username, email, avatar FROM users WHERE id = ? LIMIT 1");
+      // friss felhasználó
+      $stmt = $mysqli->prepare("SELECT id, username, email, avatar, address FROM users WHERE id = ? LIMIT 1");
       $stmt->bind_param('i', $userId);
       $stmt->execute();
       $user = $stmt->get_result()->fetch_assoc();
       $stmt->close();
 
-      // --- RÉGI AVATAR TÖRLÉSE BIZTONSÁGOSAN ---
-      // Csak akkor törlünk, ha:
-      //  - volt régi avatar,
-      //  - lett új avatar (tehát tényleg cserélt),
-      //  - és a régi az /uploads/avatars/ mappában van.
+      // régi avatar törlése (ha volt csere)
       if ($newAvatarPath && $oldAvatar && strpos($oldAvatar, '/uploads/avatars/') === 0) {
         $absRoot = rtrim($_SERVER['DOCUMENT_ROOT'] ?? __DIR__, '/');
         $oldAbs  = $absRoot . $oldAvatar;
@@ -148,7 +152,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } catch (Throwable $e) {
       $mysqli->rollback();
-      // error_log('Profil mentés hiba: '.$e->getMessage());
       $errMsg = 'Váratlan hiba történt a mentés közben.';
     }
   }
@@ -156,6 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Avatar megjelenítés (fallback)
 $avatarUrl = !empty($user['avatar']) ? $user['avatar'] : '/assets/img/avatar-placeholder.svg';
+$addressVal = (string)($user['address'] ?? '');
 ?>
 <!doctype html>
 <html lang="hu">
@@ -182,10 +186,10 @@ $avatarUrl = !empty($user['avatar']) ? $user['avatar'] : '/assets/img/avatar-pla
   <h1 class="page-title mb-3">Profilom</h1>
 
   <?php if ($okMsg): ?>
-    <div class="alert alert-success"><?= e($okMsg) ?></div>
+    <div class="alert alert-success"><?= htmlspecialchars($okMsg, ENT_QUOTES, 'UTF-8') ?></div>
   <?php endif; ?>
   <?php if ($errMsg): ?>
-    <div class="alert alert-danger"><?= e($errMsg) ?></div>
+    <div class="alert alert-danger"><?= htmlspecialchars($errMsg, ENT_QUOTES, 'UTF-8') ?></div>
   <?php endif; ?>
 
   <form class="profile-card" method="post" enctype="multipart/form-data">
@@ -194,12 +198,31 @@ $avatarUrl = !empty($user['avatar']) ? $user['avatar'] : '/assets/img/avatar-pla
     <!-- AVATAR -->
     <div class="row g-4 align-items-center">
       <div class="col-auto">
-        <img id="avatarPreview" src="<?= e($avatarUrl) ?>" alt="Avatar" class="avatar-preview">
+        <img id="avatarPreview" src="<?= htmlspecialchars($avatarUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Avatar" class="avatar-preview">
       </div>
       <div class="col">
         <div class="form-section-title">Profilkép</div>
         <div class="text-muted mb-2">JPG / PNG / WebP • max 5 MB</div>
         <input class="form-control" type="file" name="avatar" id="avatar" accept="image/png,image/jpeg,image/webp">
+      </div>
+    </div>
+
+    <hr class="my-4">
+
+    <!-- SZÁLLÍTÁSI CÍM -->
+    <div class="row g-3">
+      <div class="col-12">
+        <div class="form-section-title">Szállítási cím</div>
+        <div class="text-muted mb-2">Rendelés leadásához kötelező. Minimum 10 karakter.</div>
+      </div>
+      <div class="col-12">
+        <input type="text"
+               class="form-control"
+               name="address"
+               value="<?= htmlspecialchars($addressVal, ENT_QUOTES, 'UTF-8') ?>"
+               minlength="10"
+               maxlength="255"
+               placeholder="Pl.: 1111 Budapest, Példa utca 12. 3/5">
       </div>
     </div>
 
@@ -236,7 +259,7 @@ $avatarUrl = !empty($user['avatar']) ? $user['avatar'] : '/assets/img/avatar-pla
   </form>
 </div>
 
-<script nonce="<?= e($cspNonce) ?>">
+<script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
 // Avatar előnézet
 document.getElementById('avatar')?.addEventListener('change', function(){
   const [file] = this.files;
@@ -245,7 +268,7 @@ document.getElementById('avatar')?.addEventListener('change', function(){
   document.getElementById('avatarPreview').src = url;
 });
 
-// Elvetés = oldal újratöltése (visszaállítja az eredeti állapotot)
+// Elvetés = oldal újratöltése
 document.getElementById('discardBtn')?.addEventListener('click', () => { location.reload(); });
 </script>
 

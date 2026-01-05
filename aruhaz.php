@@ -1,7 +1,7 @@
 <?php
 // Hair Heaven – Áruház (aruhaz.php)
 session_start();
-require_once __DIR__ . '/biztonsag.php'; // <- itt készül a $GLOBALS['CSP_NONCE']
+require_once __DIR__ . '/biztonsag.php'; 
 require_once __DIR__ . '/connect.php';
 
 $mysqli = db(); // mysqli|null

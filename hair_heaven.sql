@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: 127.0.0.1
--- Létrehozás ideje: 2026. Jan 04. 15:26
+-- Létrehozás ideje: 2026. Jan 05. 17:10
 -- Kiszolgáló verziója: 10.4.27-MariaDB
 -- PHP verzió: 8.2.0
 
@@ -74,6 +74,16 @@ CREATE TABLE `bookings` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
 
+--
+-- A tábla adatainak kiíratása `bookings`
+--
+
+INSERT INTO `bookings` (`id`, `user_id`, `service_id`, `appointment_datetime`, `status`, `note`, `created_at`) VALUES
+(1, 2, 1, '2026-01-09 08:15:00', 'cancelled', NULL, '2026-01-04 15:32:40'),
+(2, 2, 1, '2026-01-08 08:15:00', 'pending', NULL, '2026-01-04 15:52:10'),
+(3, 2, 1, '2026-01-09 08:00:00', 'pending', NULL, '2026-01-04 16:07:40'),
+(4, 2, 1, '2026-01-09 08:15:00', 'pending', NULL, '2026-01-04 16:08:00');
+
 -- --------------------------------------------------------
 
 --
@@ -91,6 +101,13 @@ CREATE TABLE `orders` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
 
+--
+-- A tábla adatainak kiíratása `orders`
+--
+
+INSERT INTO `orders` (`id`, `user_id`, `total_amount`, `status`, `customer_name`, `customer_email`, `customer_address`, `created_at`) VALUES
+(1, 2, '119820.00', 'new', 'Admin', 'admin@gmail.com', '', '2026-01-05 15:47:16');
+
 -- --------------------------------------------------------
 
 --
@@ -105,6 +122,15 @@ CREATE TABLE `order_items` (
   `unit_price` decimal(10,2) NOT NULL,
   `qty` int(11) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
+
+--
+-- A tábla adatainak kiíratása `order_items`
+--
+
+INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `product_name`, `unit_price`, `qty`) VALUES
+(1, 1, 1, 'Fructis Goodbye Damage', '3490.00', 6),
+(2, 1, 3, 'Color Protect Mask', '5990.00', 3),
+(3, 1, 4, 'Scalp Elixir Treatment', '8990.00', 9);
 
 -- --------------------------------------------------------
 
@@ -260,6 +286,7 @@ CREATE TABLE `users` (
   `id` int(11) NOT NULL,
   `username` varchar(100) NOT NULL,
   `email` varchar(190) NOT NULL,
+  `address` varchar(255) DEFAULT NULL,
   `password_hash` varchar(255) NOT NULL,
   `avatar` varchar(255) DEFAULT NULL,
   `role` enum('owner','customer') NOT NULL DEFAULT 'customer',
@@ -271,10 +298,13 @@ CREATE TABLE `users` (
 -- A tábla adatainak kiíratása `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `avatar`, `role`, `created_at`, `updated_at`) VALUES
-(1, 'Lakatos Brendon', 'lakatos@gmail.com', '$2y$10$c/G2RWUjlqlDJoc436BNduAwN5vHFsPnXXvFm6xGxpW7UZWiACIze', NULL, 'customer', '2026-01-02 14:41:21', '2026-01-02 14:41:47'),
-(3, 'Knyihár Roland', 'knyiharroland@gmail.com', '$2y$10$7V/mwnWtgshqYBbQSjIy1.ayx9KX.oxB0s37LXPmGKK.RdM9jMNCm', NULL, 'customer', '2026-01-02 14:55:56', '2026-01-02 14:55:56'),
-(4, 'Admin', 'admin@gmail.com', '$2y$10$Fc9z1QVMu.KZksP3y62Vze0X9SN4y1/0E4mY3aAQQaoeapadmHUT.', '/uploads/avatars/u4_1767534722.jpg', 'customer', '2026-01-02 14:58:34', '2026-01-04 14:52:02');
+INSERT INTO `users` (`id`, `username`, `email`, `address`, `password_hash`, `avatar`, `role`, `created_at`, `updated_at`) VALUES
+(1, 'Lakatos Brendon', 'lakatos@gmail.com', NULL, '$2y$10$c/G2RWUjlqlDJoc436BNduAwN5vHFsPnXXvFm6xGxpW7UZWiACIze', NULL, 'customer', '2026-01-02 14:41:21', '2026-01-02 14:41:47'),
+(2, 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '$2y$10$Fc9z1QVMu.KZksP3y62Vze0X9SN4y1/0E4mY3aAQQaoeapadmHUT.', '/uploads/avatars/u2_1767622454.png', 'owner', '2026-01-02 14:58:34', '2026-01-05 17:06:45'),
+(3, 'Knyihár Roland', 'knyiharroland@gmail.com', NULL, '$2y$10$7V/mwnWtgshqYBbQSjIy1.ayx9KX.oxB0s37LXPmGKK.RdM9jMNCm', NULL, 'customer', '2026-01-02 14:55:56', '2026-01-02 14:55:56'),
+(5, 'Brendon az úr', 'lakatos.b@gmail.com', NULL, '$2y$10$D9HFaGmMZSfyDjTW9PkQMuSCVw5wQ6tbF3WpkbaJOORKKuUU8npLe', '/uploads/avatars/u5_1767540046.png', 'customer', '2026-01-04 16:19:42', '2026-01-04 16:20:46'),
+(6, 'Teszt Elek123', 'teszt123@gmail.com', NULL, '$2y$10$D83xinVKs1kN1tlJNS9LUuMlya2gj5wHcq60Sk97APduUiegvMYfO', NULL, 'customer', '2026-01-04 16:30:48', '2026-01-04 16:30:48'),
+(7, 'Stan', 'stan@gmail.com', NULL, '$2y$10$WRvv6fl/Pd8UW4A0M/yT6.SLSfjDW2.lYSg6wn7LOKWa8hmppoGYK', NULL, 'customer', '2026-01-05 17:07:56', '2026-01-05 17:07:56');
 
 --
 -- Indexek a kiírt táblákhoz
@@ -393,19 +423,19 @@ ALTER TABLE `banners`
 -- AUTO_INCREMENT a táblához `bookings`
 --
 ALTER TABLE `bookings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT a táblához `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT a táblához `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT a táblához `products`
@@ -447,7 +477,7 @@ ALTER TABLE `services`
 -- AUTO_INCREMENT a táblához `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Megkötések a kiírt táblákhoz

@@ -10,7 +10,7 @@ $isLogged = !empty($_SESSION['belepve']);
 function e($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
 // --- Session kosár: [ product_id => qty, ... ]
-$cart = $_SESSION['cart'] ?? [];
+$cart  = $_SESSION['cart'] ?? [];
 $items = [];
 $grand = 0.0;
 
@@ -45,6 +45,18 @@ if (!empty($cart) && $mysqli) {
     ];
     $grand += $sub;
   }
+}
+
+// — Szállítási cím meglétének ellenőrzése (min. 10 karakter)
+$hasAddress = false;
+$addressVal = '';
+if ($isLogged && $mysqli) {
+  $stmt = $mysqli->prepare("SELECT address FROM users WHERE id=? LIMIT 1");
+  $stmt->bind_param('i', $_SESSION['user_id']);
+  $stmt->execute();
+  $addressVal = (string)($stmt->get_result()->fetch_assoc()['address'] ?? '');
+  $stmt->close();
+  $hasAddress = (mb_strlen(trim($addressVal)) >= 10);
 }
 ?>
 <!doctype html>
@@ -86,14 +98,27 @@ if (!empty($cart) && $mysqli) {
 </head>
 <body>
 
-<?php $activePage = ''; include __DIR__ . '/navbar.php'; ?>
+<?php $activePage = 'cart'; include __DIR__ . '/navbar.php'; ?>
 
 <div class="container my-4">
   <h1 class="page-title mb-3">Kosár</h1>
 
+  <?php if (!empty($_SESSION['flash_success'])): ?>
+    <div class="alert alert-success"><?= e($_SESSION['flash_success']); unset($_SESSION['flash_success']); ?></div>
+  <?php endif; ?>
+  <?php if (!empty($_SESSION['flash_error'])): ?>
+    <div class="alert alert-danger"><?= e($_SESSION['flash_error']); unset($_SESSION['flash_error']); ?></div>
+  <?php endif; ?>
+
   <?php if (!$isLogged): ?>
     <div class="alert alert-warning">
       A vásárláshoz be kell jelentkezned. <a class="fw-bold" href="/belepes.php">Jelentkezz be</a> vagy <a class="fw-bold" href="/regisztracio.php">regisztrálj</a>!
+    </div>
+  <?php endif; ?>
+
+  <?php if ($isLogged && !$hasAddress): ?>
+    <div class="alert alert-info">
+      A <strong>Rendelés leadása</strong> gomb aktiválásához adj meg egy szállítási címet a <a href="/profil.php" class="fw-bold">Profilom</a> oldalon (min. 10 karakter).
     </div>
   <?php endif; ?>
 
@@ -172,6 +197,7 @@ if (!empty($cart) && $mysqli) {
         </a>
 
         <div class="d-flex gap-2">
+          <!-- Teljes kosár kiürítése -->
           <form method="post" action="/api/cart_clear.php">
             <?= csrf_field() ?>
             <button class="btn btn-outline-danger" type="submit">
@@ -179,9 +205,26 @@ if (!empty($cart) && $mysqli) {
             </button>
           </form>
 
-          <a class="btn btn-cta text-white" href="<?= $isLogged ? '/penztar.php' : '/belepes.php' ?>">
-            <i class="fa-solid fa-cash-register me-1"></i> Tovább a pénztárhoz
-          </a>
+          <?php if ($isLogged && $hasAddress): ?>
+            <!-- Rendelés leadása -->
+            <form method="post" action="/api/order_place.php">
+              <?= csrf_field() ?>
+              <button class="btn btn-cta text-white" type="submit" title="Rendelés leadása">
+                <i class="fa-solid fa-receipt me-1"></i> Rendelés leadása
+              </button>
+            </form>
+          <?php elseif ($isLogged && !$hasAddress): ?>
+            <a class="btn btn-secondary disabled" href="#" tabindex="-1" aria-disabled="true">
+              <i class="fa-solid fa-receipt me-1"></i> Rendelés leadása
+            </a>
+            <a class="btn btn-outline-dark" href="/profil.php" title="Adj meg szállítási címet a Profilom oldalon!">
+              <i class="fa-solid fa-location-dot me-1"></i> Szállítási cím megadása
+            </a>
+          <?php else: ?>
+            <a class="btn btn-cta text-white" href="/belepes.php" title="A rendeléshez kérlek jelentkezz be.">
+              <i class="fa-solid fa-right-to-bracket me-1"></i> Bejelentkezés a rendeléshez
+            </a>
+          <?php endif; ?>
         </div>
       </div>
     <?php endif; ?>
