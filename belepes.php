@@ -96,7 +96,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['username'] = $user['username'] ?? null;
         $_SESSION['email']    = $user['email'] ?? null;
         $_SESSION['role']     = $user['role'] ?? 'customer';
-        // >>> FONTOS: mindig a kiszámolt $avatarPath kerüljön be
         $_SESSION['avatar']   = $avatarPath;
 
         header('Location: /');
@@ -173,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <div class="mb-3">
             <label for="password" class="form-label">Jelszó</label>
             <input type="password" class="form-control" id="password" name="password"
-                   required minlength="8" autocomplete="current-password" placeholder="••••••••">
+                   required minlength="8" autocomplete="current-password" placeholder="">
           </div>
 
           <div class="d-grid mt-4">

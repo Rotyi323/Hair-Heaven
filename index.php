@@ -19,7 +19,7 @@ function fetch_all_assoc(?mysqli $mysqli, string $sql): array {
   }
 }
 
-// --- BANNEREK ---
+// --- BANNEREK (hero slide-ok forrása) ---
 $banners = fetch_all_assoc($mysqli, "
   SELECT id, title, image_path, link_url
   FROM banners
@@ -27,11 +27,40 @@ $banners = fetch_all_assoc($mysqli, "
   ORDER BY id DESC
   LIMIT 5
 ");
-if (empty($banners)) {
-  $banners = [
-    ['id'=>1,'title'=>'Őszi hajápolás új szinten','image_path'=>'uploads/banners/fall.jpg','link_url'=>'/aruhaz.php?type=mask'],
-    ['id'=>2,'title'=>'Top ajánlatok – válogatott kedvencek','image_path'=>'uploads/banners/top.jpg','link_url'=>'/#ajanlatok'],
-    ['id'=>3,'title'=>'Fejbőr-kényeztetés','image_path'=>'uploads/banners/scalp.jpg','link_url'=>'/szolgaltatasok.php'],
+
+// Két TelefonFix-szerű slide
+$slides = [];
+if (!empty($banners)) {
+  $use = array_slice($banners, 0, 2);
+  foreach ($use as $b) {
+    $slides[] = [
+      'img'   => $b['image_path'],
+      'title' => $b['title'],
+      'href1' => '/szolgaltatasok.php',
+      'text1' => 'Időpontfoglalás',
+      'href2' => !empty($b['link_url']) ? $b['link_url'] : '/aruhaz.php',
+      'text2' => 'Áruház',
+    ];
+  }
+} else {
+  // Fallback
+  $slides = [
+    [
+      'img'   => '/assets/hero/hero-1.jpg',
+      'title' => 'Őszi ápolások – vágás, színvédelem, kúrák',
+      'href1' => '/szolgaltatasok.php',
+      'text1' => 'Időpontfoglalás',
+      'href2' => '/aruhaz.php',
+      'text2' => 'Áruház',
+    ],
+    [
+      'img'   => '/assets/hero/hero-2.jpg',
+      'title' => 'Top ajánlatok & kedvencek – fedezd fel!',
+      'href1' => '/aruhaz.php',
+      'text1' => 'Felfedezem',
+      'href2' => '/ugyfelek.php',
+      'text2' => 'Elégedett vásárlók',
+    ],
   ];
 }
 
@@ -92,31 +121,29 @@ if (empty($profiles)) {
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<link rel="stylesheet" href="/assets/hairheaven.css">
+  <link rel="stylesheet" href="/assets/hairheaven.css">
   <style>
-    :root{
-      --hh-primary: #c76df0;
-      --hh-dark:    #1c1a27;
-      --hh-muted:   #6c6a75;
-      --hh-bg:      #faf7ff;
+    :root{ --hh-primary:#c76df0; --hh-dark:#1c1a27; --hh-muted:#6c6a75; --hh-bg:#faf7ff; }
+    body{ background:var(--hh-bg); color:var(--hh-dark); }
+
+    /* TelefonFix-szerű HERO CAROUSEL */
+    .hero-carousel{ margin-bottom:1.5rem; border:.25rem solid #0b0b0b; border-radius:12px; overflow:hidden; }
+    .hero-carousel .carousel-item{ height:39rem; position:relative; color:#fff; }
+    .hero-carousel .carousel-item>img{ position:absolute; inset:0; width:100%; height:39rem; object-fit:cover; filter:contrast(1.03) saturate(1.05); }
+    .hero-mask{ position:absolute; inset:0; background:linear-gradient(120deg, rgba(0,0,0,.55), rgba(0,0,0,.25) 60%, rgba(0,0,0,.08)); z-index:1; }
+    .hero-carousel .carousel-caption{ z-index:2; bottom:3rem; text-shadow:0 6px 20px rgba(0,0,0,.45); }
+    .hero-title{ font-size:clamp(1.9rem, 1.4rem + 2.4vw, 2.6rem); font-weight:800; line-height:1.2; }
+    /* A lead szöveget balra igazítjuk, hogy pontosan egy vonalban legyen a címmel */
+    .hero-lead{ font-size:clamp(1.05rem, .9rem + .7vw, 1.35rem); line-height:1.5; max-width:62ch; margin:0 0 1.25rem 0; }
+    .hero-btns .btn{ white-space:nowrap; }
+
+    @media (max-width:576px){
+      .hero-carousel .carousel-item{ height:34rem; }
+      .hero-carousel .carousel-item>img{ height:34rem; }
+      .hero-carousel .carousel-caption{ bottom:2rem; }
     }
-    body{ background: var(--hh-bg); color: var(--hh-dark); }
-    .navbar{ background:#fff; box-shadow: 0 6px 20px rgba(0,0,0,.06); }
-    .navbar-brand{ font-weight:800; letter-spacing:.5px; color:var(--hh-dark); }
-    .navbar-brand .dot{ color:var(--hh-primary); }
-    .nav-link{ font-weight:600; color:var(--hh-dark); }
-    .nav-link:hover, .nav-link.active{ color:var(--hh-primary); }
 
-    /* Carousel */
-    .hh-carousel .carousel-item{ height:58vh; min-height:360px; background:#111; position:relative; color:#fff; }
-    .hh-carousel .carousel-item .mask{ position:absolute; inset:0; background:linear-gradient(40deg, rgba(0,0,0,.5), rgba(0,0,0,.15)); }
-    .hh-carousel img{ object-fit:cover; width:100%; height:100%; filter:saturate(1.05) contrast(1.02); }
-    .hh-carousel h1{ text-shadow:0 10px 30px rgba(0,0,0,.4); font-weight:800; letter-spacing:.3px; }
-
-
-    .section-title{ font-weight:800; letter-spacing:.4px; margin-bottom:.5rem; }
-    .section-sub{ color: var(--hh-muted); }
-
+    /* Kártyák / szekciók */
     .product-card{
       border:0; border-radius:16px; overflow:hidden; background:#fff;
       box-shadow:0 10px 30px rgba(0,0,0,.06);
@@ -126,61 +153,73 @@ if (empty($profiles)) {
     .product-card img{ height:210px; object-fit:cover; }
     .brand-badge{ background:#f3e7ff; color:#7e3dbf; font-weight:700; border-radius:999px; padding:.25rem .65rem; font-size:.75rem; }
     .price-tag{ font-weight:800; font-size:1.15rem; }
-
-    .service-card{ background:#fff; border-radius:16px; padding:20px; height:100%;
-      box-shadow: 0 10px 30px rgba(0,0,0,.06); }
+    .service-card{ background:#fff; border-radius:16px; padding:20px; height:100%; box-shadow:0 10px 30px rgba(0,0,0,.06); }
     .service-card h5{ font-weight:800; }
     .service-chip{ color: var(--hh-muted); font-size:.9rem; }
-
-    .profile-card{ background:#fff; border-radius:16px; padding:20px; height:100%;
-      box-shadow: 0 10px 30px rgba(0,0,0,.06); }
-    .profile-avatar{
-      width:72px; height:72px; border-radius:50%; object-fit:cover; border:3px solid #fff;
-      box-shadow:0 8px 24px rgba(0,0,0,.12);
-    }
+    .profile-card{ background:#fff; border-radius:16px; padding:20px; height:100%; box-shadow:0 10px 30px rgba(0,0,0,.06); }
+    .profile-avatar{ width:72px; height:72px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 8px 24px rgba(0,0,0,.12); }
     .fav-brand{ color:#7e3dbf; border:1px solid #e5d6ff; padding:.2rem .55rem; border-radius:999px; font-size:.8rem; }
-
     footer{ color: var(--hh-muted); }
     #ajanlatok::before{ content:""; display:block; height:72px; margin-top:-72px; visibility:hidden; }
   </style>
-
-
 </head>
 <body>
 
 <?php $activePage = 'home'; include __DIR__ . '/navbar.php'; ?>
 
-<!-- CAROUSEL -->
-<div id="hhCarousel" class="carousel slide hh-carousel" data-bs-ride="carousel">
+<!-- HERO CAROUSEL -->
+<div id="heroCarousel"
+     class="carousel slide hero-carousel"
+     data-bs-ride="carousel"
+     data-bs-interval="6500"
+     data-bs-pause="hover"
+     data-bs-touch="true">
+
   <div class="carousel-indicators">
-    <?php foreach ($banners as $i => $b): ?>
-      <button type="button" data-bs-target="#hhCarousel" data-bs-slide-to="<?= $i ?>" class="<?= $i===0?'active':'' ?>" aria-current="<?= $i===0?'true':'false' ?>" aria-label="Slide <?= $i+1 ?>"></button>
+    <?php foreach ($slides as $i => $_): ?>
+      <button type="button"
+              data-bs-target="#heroCarousel"
+              data-bs-slide-to="<?= $i ?>"
+              class="<?= $i===0 ? 'active' : '' ?>"
+              aria-current="<?= $i===0 ? 'true' : 'false' ?>"
+              aria-label="Slide <?= $i+1 ?>"></button>
     <?php endforeach; ?>
   </div>
+
   <div class="carousel-inner">
-    <?php foreach ($banners as $i => $b): ?>
-    <div class="carousel-item <?= $i===0?'active':'' ?>">
-      <img src="<?= e($b['image_path']) ?>" class="d-block w-100" alt="<?= e($b['title']) ?>">
-      <div class="mask"></div>
-      <div class="container h-100">
-        <div class="row h-100 align-items-center">
-          <div class="col-12 col-lg-7 text-white">
-            <h1 class="display-5 mb-3"><?= e($b['title']) ?></h1>
-            <p class="lead mb-4">Fedezd fel a prémium hajápolás világát – kényeztesd magad a Hair Heaven-ben.</p>
-            <?php if (!empty($b['link_url'])): ?>
-              <a class="btn btn-lg btn-cta text-white" href="<?= e($b['link_url']) ?>">Felfedezem</a>
-            <?php endif; ?>
+    <?php foreach ($slides as $i => $s): ?>
+      <div class="carousel-item <?= $i===0 ? 'active' : '' ?>">
+        <img src="<?= htmlspecialchars($s['img'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($s['title'], ENT_QUOTES, 'UTF-8') ?>">
+        <div class="hero-mask"></div>
+        <div class="container">
+          <!-- MINDIG balra igazítunk, hogy ne takarja a képet és konzisztens legyen -->
+          <div class="carousel-caption text-start">
+            <div class="mb-2">
+              <span class="badge rounded-pill text-bg-light text-dark fw-bold">Hair Heaven • Szalon &amp; Shop</span>
+            </div>
+            <h1 class="hero-title mb-2"><?= htmlspecialchars($s['title'], ENT_QUOTES, 'UTF-8') ?></h1>
+            <p class="hero-lead">Prémium hajvágás, színvédelem és fejbőr-kúrák – foglalj online, és fedezd fel kedvenceidet az áruházban!</p>
+            <div class="hero-btns d-flex gap-2 justify-content-start">
+              <a class="btn btn-lg btn-cta text-white" href="<?= htmlspecialchars($s['href1'], ENT_QUOTES, 'UTF-8') ?>">
+                <i class="fa-regular fa-calendar-check me-1"></i> <?= htmlspecialchars($s['text1'], ENT_QUOTES, 'UTF-8') ?>
+              </a>
+              <a class="btn btn-lg btn-outline-light" href="<?= htmlspecialchars($s['href2'], ENT_QUOTES, 'UTF-8') ?>">
+                <i class="fa-solid fa-arrow-right me-1"></i> <?= htmlspecialchars($s['text2'], ENT_QUOTES, 'UTF-8') ?>
+              </a>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     <?php endforeach; ?>
   </div>
-  <button class="carousel-control-prev" type="button" data-bs-target="#hhCarousel" data-bs-slide="prev">
-    <span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Előző</span>
+
+  <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Előző</span>
   </button>
-  <button class="carousel-control-next" type="button" data-bs-target="#hhCarousel" data-bs-slide="next">
-    <span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Következő</span>
+  <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Következő</span>
   </button>
 </div>
 
@@ -200,17 +239,15 @@ if (empty($profiles)) {
       <?php foreach ($featured as $p): ?>
         <div class="col-12 col-sm-6 col-lg-3">
           <div class="card product-card h-100">
-            <img src="<?= e($p['image']) ?>" class="card-img-top" alt="<?= e($p['name']) ?>">
+            <img src="<?= htmlspecialchars($p['image'], ENT_QUOTES, 'UTF-8') ?>" class="card-img-top" alt="<?= htmlspecialchars($p['name'], ENT_QUOTES, 'UTF-8') ?>">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="brand-badge"><?= e($p['brand']) ?></span>
+                <span class="brand-badge"><?= htmlspecialchars($p['brand'], ENT_QUOTES, 'UTF-8') ?></span>
                 <span class="price-tag"><?= number_format((float)$p['price'], 0, ',', ' ') ?> Ft</span>
               </div>
-              <h5 class="card-title"><?= e($p['name']) ?></h5>
+              <h5 class="card-title"><?= htmlspecialchars($p['name'], ENT_QUOTES, 'UTF-8') ?></h5>
               <div class="d-grid gap-2 mt-3">
-                <a href="/termek.php?id=<?= (int)$p['id'] ?>" class="btn btn-outline-dark">
-                  Részletek
-                </a>
+                <a href="/termek.php?id=<?= (int)$p['id'] ?>" class="btn btn-outline-dark">Részletek</a>
                 <form method="post" action="/api/cart_add.php" class="d-grid">
                   <?= csrf_field() ?>
                   <input type="hidden" name="product_id" value="<?= (int)$p['id'] ?>">
@@ -225,9 +262,7 @@ if (empty($profiles)) {
         </div>
       <?php endforeach; ?>
       <?php if (empty($featured)): ?>
-        <div class="col-12">
-          <div class="alert alert-secondary">Nincs kiemelt termék még beállítva.</div>
-        </div>
+        <div class="col-12"><div class="alert alert-secondary">Nincs kiemelt termék még beállítva.</div></div>
       <?php endif; ?>
     </div>
   </div>
@@ -248,16 +283,14 @@ if (empty($profiles)) {
     <div class="row g-4">
       <?php foreach ($services as $s): ?>
         <div class="col-12 col-md-6 col-lg-4">
-          <div class="service-card">
+          <div class="service-card h-100">
             <div class="d-flex justify-content-between align-items-start">
-              <h5 class="mb-2"><?= e($s['name']) ?></h5>
+              <h5 class="mb-2"><?= htmlspecialchars($s['name'], ENT_QUOTES, 'UTF-8') ?></h5>
               <span class="price-tag"><?= number_format((float)$s['price'], 0, ',', ' ') ?> Ft</span>
             </div>
             <div class="service-chip mb-2"><i class="fa-regular fa-clock me-1"></i> <?= (int)$s['duration_minutes'] ?> perc</div>
-            <p class="mb-3"><?= e($s['description']) ?></p>
-            <a href="/foglalas.php?service_id=<?= (int)$s['id'] ?>" class="btn btn-cta text-white">
-              Időpontot foglalok
-            </a>
+            <p class="mb-3"><?= htmlspecialchars($s['description'], ENT_QUOTES, 'UTF-8') ?></p>
+            <a href="/foglalas.php?service_id=<?= (int)$s['id'] ?>" class="btn btn-cta text-white">Időpontot foglalok</a>
           </div>
         </div>
       <?php endforeach; ?>
@@ -280,29 +313,25 @@ if (empty($profiles)) {
     <div class="row g-4">
       <?php foreach ($profiles as $pr): ?>
         <div class="col-12 col-sm-6 col-lg-4">
-          <div class="profile-card">
+          <div class="profile-card h-100">
             <div class="d-flex align-items-center mb-3">
-              <img class="profile-avatar me-3" src="<?= e($pr['avatar']) ?>" alt="<?= e($pr['display_name']) ?>">
+              <img class="profile-avatar me-3" src="<?= htmlspecialchars($pr['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($pr['display_name'], ENT_QUOTES, 'UTF-8') ?>">
               <div>
-                <strong><?= e($pr['display_name']) ?></strong><br>
+                <strong><?= htmlspecialchars($pr['display_name'], ENT_QUOTES, 'UTF-8') ?></strong><br>
                 <?php if (!empty($pr['favorite_brand'])): ?>
-                  <span class="fav-brand"><i class="fa-solid fa-heart me-1"></i> <?= e($pr['favorite_brand']) ?></span>
+                  <span class="fav-brand"><i class="fa-solid fa-heart me-1"></i> <?= htmlspecialchars($pr['favorite_brand'], ENT_QUOTES, 'UTF-8') ?></span>
                 <?php endif; ?>
               </div>
             </div>
             <?php if (!empty($pr['bio'])): ?>
-              <p class="mb-3"><?= e($pr['bio']) ?></p>
+              <p class="mb-3"><?= htmlspecialchars($pr['bio'], ENT_QUOTES, 'UTF-8') ?></p>
             <?php endif; ?>
-            <a class="btn btn-outline-dark btn-sm" href="/ugyfel.php?id=<?= (int)$pr['id'] ?>">
-              Megnézem a profilját
-            </a>
+            <a class="btn btn-outline-dark btn-sm" href="/ugyfel.php?id=<?= (int)$pr['id'] ?>">Megnézem a profilját</a>
           </div>
         </div>
       <?php endforeach; ?>
       <?php if (empty($profiles)): ?>
-        <div class="col-12">
-          <div class="alert alert-secondary">Még nincs feltöltött profil. Hamarosan!</div>
-        </div>
+        <div class="col-12"><div class="alert alert-secondary">Még nincs feltöltött profil. Hamarosan!</div></div>
       <?php endif; ?>
     </div>
   </div>
