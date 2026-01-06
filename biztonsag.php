@@ -1,29 +1,20 @@
 <?php
-// Hair Heaven – Központi biztonsági include
-// Tedd be MINDEN PHP oldal legelejére (session_start() elé, ha lehet).
 
-/* ===== CSP NONCE =====
-   Ezzel engedélyezheted az inline <script>-eket:
-   <script nonce="<?= e($GLOBALS['CSP_NONCE'] ?? '') ?>"> ... </script>
-*/
 if (!isset($GLOBALS['CSP_NONCE'])) {
     $GLOBALS['CSP_NONCE'] = base64_encode(random_bytes(16));
 }
 $cspNonce = $GLOBALS['CSP_NONCE'];
 
-/* ===== Biztonsági HTTP headerek + CSP ===== */
 if (!headers_sent()) {
     header("X-Content-Type-Options: nosniff");
     header("X-Frame-Options: DENY");
     header("Referrer-Policy: strict-origin-when-cross-origin");
-    header("X-XSS-Protection: 0"); // modern böngészőkben deprecated; CSP számít
+    header("X-XSS-Protection: 0"); 
 
     // Használt CDN-ek: jsDelivr, Cloudflare (FontAwesome)
     $csp = [
         "default-src 'self'",
-        // Inline script csak a nonce-szal engedélyezett + CDN-ek
         "script-src 'self' 'nonce-{$cspNonce}' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
-        // Bootstrap miatt maradhat az inline style
         "style-src  'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
         "img-src    'self' data: blob:",
         "font-src   'self' https://cdnjs.cloudflare.com",
@@ -36,7 +27,7 @@ if (!headers_sent()) {
     header("Content-Security-Policy: " . implode("; ", $csp));
 }
 
-/* ===== Multibyte/UTF-8 normalizálás ===== */
+//Multibyte/UTF-8 normalizálás
 if (!function_exists('hh_to_utf8')) {
     function hh_to_utf8($s) {
         if ($s === null) return null;

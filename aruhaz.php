@@ -1,36 +1,33 @@
 <?php
-// Hair Heaven – Áruház (aruhaz.php)
 session_start();
 require_once __DIR__ . '/biztonsag.php'; 
 require_once __DIR__ . '/connect.php';
 
-$mysqli = db(); // mysqli|null
+$mysqli = db(); 
 
 
-// --- Helpers ---
+
 function e($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function get_param($key, $default=''){ return isset($_GET[$key]) ? trim((string)$_GET[$key]) : $default; }
 
-// --- Alap beállítások ---
+
 $PAGE_SIZE = 12;
 $isLogged  = !empty($_SESSION['belepve']);
 $username  = $_SESSION['username'] ?? null;
 
-// --- Szűrők/keresés a query-ből ---
-$q         = get_param('q');                             // keresőszó
-$brand     = get_param('brand');                         // márka
-$type      = get_param('type');                          // termék típus (enum)
+// Szűrők/keresés a query-ből
+$q         = get_param('q');      // keresőszó
+$brand     = get_param('brand');  // márka
+$type      = get_param('type');   // termék típus
 
-// Min/Max ár: a felhasználó mezőiben szóközzel formázott számok jöhetnek -> tisztítás
+
 $min_price_in = get_param('min_price');
 $max_price_in = get_param('max_price');
 $min_price = ($min_price_in !== '') ? preg_replace('/\D+/', '', $min_price_in) : '';
 $max_price = ($max_price_in !== '') ? preg_replace('/\D+/', '', $max_price_in) : '';
+$sort      = get_param('sort', 'name_asc');    
+$page      = max(1, (int) get_param('page', 1));        
 
-$sort      = get_param('sort', 'name_asc');              // rendezés
-$page      = max(1, (int) get_param('page', 1));         // pagináció
-
-// Engedélyezett típusok és rendezési opciók (UI és validáció)
 $allowedTypes = ['shampoo','conditioner','mask','treatment','styling','other'];
 $sortOptions = [
   'name_asc'  => ['label' => 'Név (A–Z)',    'sql' => 'name ASC'],
@@ -41,7 +38,7 @@ $sortOptions = [
 if (!isset($sortOptions[$sort])) $sort = 'name_asc';
 if ($type !== '' && !in_array($type, $allowedTypes, true)) $type = '';
 
-// --- Márkák a szűrőhöz ---
+//Márkák a szűrőhöz
 $brands = [];
 $types  = $allowedTypes;
 if ($mysqli) {
@@ -520,7 +517,6 @@ function qs_without_page(){
   r1.addEventListener('input', syncFromRanges);
   r2.addEventListener('input', syncFromRanges);
 
-  // elküldés előtt szóközök eltávolítása
   form.addEventListener('submit', function(){
     f1.value = (f1.value||'').replace(/\D/g,'');
     f2.value = (f2.value||'').replace(/\D/g,'');
