@@ -3,9 +3,9 @@ session_start();
 require_once __DIR__ . '/biztonsag.php';
 require_once __DIR__ . '/connect.php';
 
-$mysqli = db(); // mysqli | null
+$mysqli = db(); 
 
-// --- Egyszerű adatlekérő helper (hiba esetén üres tömb) ---
+//  Egyszerű adatlekérő helper (hiba esetén üres tömb) 
 function fetch_all_assoc(?mysqli $mysqli, string $sql): array {
   if (!$mysqli) return [];
   try {
@@ -19,7 +19,7 @@ function fetch_all_assoc(?mysqli $mysqli, string $sql): array {
   }
 }
 
-// --- BANNEREK (hero slide-ok forrása) ---
+// banner
 $banners = fetch_all_assoc($mysqli, "
   SELECT id, title, image_path, link_url
   FROM banners
@@ -28,7 +28,7 @@ $banners = fetch_all_assoc($mysqli, "
   LIMIT 5
 ");
 
-// Két TelefonFix-szerű slide
+
 $slides = [];
 if (!empty($banners)) {
   $use = array_slice($banners, 0, 2);
@@ -126,14 +126,13 @@ if (empty($profiles)) {
     :root{ --hh-primary:#c76df0; --hh-dark:#1c1a27; --hh-muted:#6c6a75; --hh-bg:#faf7ff; }
     body{ background:var(--hh-bg); color:var(--hh-dark); }
 
-    /* TelefonFix-szerű HERO CAROUSEL */
+
     .hero-carousel{ margin-bottom:1.5rem; border:.25rem solid #0b0b0b; border-radius:12px; overflow:hidden; }
-    .hero-carousel .carousel-item{ height:39rem; position:relative; color:#fff; }
-    .hero-carousel .carousel-item>img{ position:absolute; inset:0; width:100%; height:39rem; object-fit:cover; filter:contrast(1.03) saturate(1.05); }
+    .hero-carousel .carousel-item{ height:42rem; position:relative; color:#fff; }
+    .hero-carousel .carousel-item>img{ position:absolute; inset:0; width:100%; height:42rem; object-fit:cover; filter:contrast(1.03) saturate(1.05); }
     .hero-mask{ position:absolute; inset:0; background:linear-gradient(120deg, rgba(0,0,0,.55), rgba(0,0,0,.25) 60%, rgba(0,0,0,.08)); z-index:1; }
     .hero-carousel .carousel-caption{ z-index:2; bottom:3rem; text-shadow:0 6px 20px rgba(0,0,0,.45); }
     .hero-title{ font-size:clamp(1.9rem, 1.4rem + 2.4vw, 2.6rem); font-weight:800; line-height:1.2; }
-    /* A lead szöveget balra igazítjuk, hogy pontosan egy vonalban legyen a címmel */
     .hero-lead{ font-size:clamp(1.05rem, .9rem + .7vw, 1.35rem); line-height:1.5; max-width:62ch; margin:0 0 1.25rem 0; }
     .hero-btns .btn{ white-space:nowrap; }
 
@@ -192,7 +191,6 @@ if (empty($profiles)) {
         <img src="<?= htmlspecialchars($s['img'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($s['title'], ENT_QUOTES, 'UTF-8') ?>">
         <div class="hero-mask"></div>
         <div class="container">
-          <!-- MINDIG balra igazítunk, hogy ne takarja a képet és konzisztens legyen -->
           <div class="carousel-caption text-start">
             <div class="mb-2">
               <span class="badge rounded-pill text-bg-light text-dark fw-bold">Hair Heaven • Szalon &amp; Shop</span>
@@ -290,7 +288,8 @@ if (empty($profiles)) {
             </div>
             <div class="service-chip mb-2"><i class="fa-regular fa-clock me-1"></i> <?= (int)$s['duration_minutes'] ?> perc</div>
             <p class="mb-3"><?= htmlspecialchars($s['description'], ENT_QUOTES, 'UTF-8') ?></p>
-            <a href="/foglalas.php?service_id=<?= (int)$s['id'] ?>" class="btn btn-cta text-white">Időpontot foglalok</a>
+            <!-- ITT módosítottam: mindig a szolgáltatások oldalra visz -->
+            <a href="/szolgaltatasok.php" class="btn btn-cta text-white">Időpontot foglalok</a>
           </div>
         </div>
       <?php endforeach; ?>

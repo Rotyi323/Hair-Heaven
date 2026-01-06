@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: 127.0.0.1
--- Létrehozás ideje: 2026. Jan 05. 17:10
+-- Létrehozás ideje: 2026. Jan 06. 16:46
 -- Kiszolgáló verziója: 10.4.27-MariaDB
 -- PHP verzió: 8.2.0
 
@@ -55,8 +55,8 @@ CREATE TABLE `banners` (
 --
 
 INSERT INTO `banners` (`id`, `title`, `image_path`, `link_url`, `is_active`) VALUES
-(1, 'Őszi ápolás', 'uploads/banners/fall.jpg', '/aruhaz.php?type=mask', 1),
-(2, 'Top ajánlatok', 'uploads/banners/top.jpg', '/#ajanlatok', 1);
+(1, 'Őszi ápolás', 'assets/hero/hero-1.jpg', '/aruhaz.php?type=mask', 1),
+(2, 'Top ajánlatok', 'assets/hero/hero-2.png', '/aruhaz.php?type=mask', 1);
 
 -- --------------------------------------------------------
 
@@ -106,7 +106,9 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `user_id`, `total_amount`, `status`, `customer_name`, `customer_email`, `customer_address`, `created_at`) VALUES
-(1, 2, '119820.00', 'new', 'Admin', 'admin@gmail.com', '', '2026-01-05 15:47:16');
+(1, 2, '119820.00', 'new', 'Admin', 'admin@gmail.com', '', '2026-01-05 15:47:16'),
+(2, 2, '53580.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-05 17:32:30'),
+(3, 2, '61440.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-06 00:31:28');
 
 -- --------------------------------------------------------
 
@@ -130,7 +132,12 @@ CREATE TABLE `order_items` (
 INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `product_name`, `unit_price`, `qty`) VALUES
 (1, 1, 1, 'Fructis Goodbye Damage', '3490.00', 6),
 (2, 1, 3, 'Color Protect Mask', '5990.00', 3),
-(3, 1, 4, 'Scalp Elixir Treatment', '8990.00', 9);
+(3, 1, 4, 'Scalp Elixir Treatment', '8990.00', 9),
+(4, 2, 3, 'Color Protect Mask', '5990.00', 3),
+(5, 2, 2, 'Deep Cleanse Shampoo', '4190.00', 6),
+(6, 2, 1, 'Fructis Goodbye Damage', '3490.00', 3),
+(7, 3, 2, 'Deep Cleanse Shampoo', '4190.00', 8),
+(8, 3, 1, 'Fructis Goodbye Damage', '3490.00', 8);
 
 -- --------------------------------------------------------
 
@@ -429,13 +436,13 @@ ALTER TABLE `bookings`
 -- AUTO_INCREMENT a táblához `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT a táblához `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT a táblához `products`

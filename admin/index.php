@@ -1,236 +1,439 @@
 <?php
+// /admin/index.php – Hair Heaven admin panel
 session_start();
-include("../konfiguracio.php");
-if ($_SESSION["jog"] != "admin") { //Ellenőrizzük hogy admin-e
-    header("Location: /");
-}
-?>
+require_once __DIR__ . '/../biztonsag.php';
+require_once __DIR__ . '/../connect.php';
 
-<!DOCTYPE html>
+$mysqli = db();
+
+// ---- Jogosultság ellenőrzés (csak owner) ----
+if (empty($_SESSION['belepve']) || ($_SESSION['role'] ?? '') !== 'owner') {
+  http_response_code(403);
+  echo 'Hozzáférés megtagadva.'; exit;
+}
+
+$userId = (int)($_SESSION['user_id'] ?? 0);
+
+// ---- Helper ----
+function e($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+function abs_img(?string $p): string {
+  $p = $p ?: '/assets/img/placeholder.png';
+  return ($p[0] === '/') ? $p : '/'.ltrim($p,'/');
+}
+function post($k,$d=''){ return isset($_POST[$k]) ? trim((string)$_POST[$k]) : $d; }
+function post_bool($k){ return isset($_POST[$k]) && ($_POST[$k]==='1' || $_POST[$k]==='on'); }
+
+// --- secure upload (termék kép)
+function save_product_image(array $file): ?string {
+  if (empty($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) return null;
+  $allowed = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
+  $mime = @mime_content_type($file['tmp_name']);
+  if (!isset($allowed[$mime])) return null;
+  $ext = $allowed[$mime];
+  $dir = __DIR__ . '/../uploads/products';
+  if (!is_dir($dir)) @mkdir($dir, 0775, true);
+  $name = 'p_'.date('Ymd_His').'_'.bin2hex(random_bytes(4)).'.'.$ext;
+  $dest = $dir.'/'.$name;
+  if (!move_uploaded_file($file['tmp_name'], $dest)) return null;
+  return '/uploads/products/'.$name;
+}
+
+// --- audit
+function audit(mysqli $db, int $userId, string $action, string $entity, ?int $entityId){
+  try{
+    $sql = "INSERT INTO audit_log (user_id, action, entity, entity_id) VALUES (?,?,?,?)";
+    $st = $db->prepare($sql);
+    $st->bind_param('issi', $userId, $action, $entity, $entityId);
+    $st->execute();
+  }catch(Throwable $e){}
+}
+
+// ---- Akciók (POST)
+$flash = ['ok'=>null,'err'=>null];
+try {
+  if ($_SERVER['REQUEST_METHOD'] === 'POST') csrf_validate();
+} catch(Throwable $e){
+  $flash['err'] = 'Érvénytelen CSRF token.';
+}
+
+if ($mysqli && $_SERVER['REQUEST_METHOD']==='POST' && !$flash['err']) {
+  try {
+    // TERMÉK mentés
+    if (post('action') === 'product_save') {
+      $id          = (int)post('id', 0);
+      $brand       = post('brand');
+      $name        = post('name');
+      $type        = post('type','other');
+      $description = post('description');
+      $price       = (float)str_replace([',',' '], ['.',''], post('price','0'));
+      $is_active   = post_bool('is_active') ? 1 : 0;
+      $is_featured = post_bool('is_featured') ? 1 : 0;
+
+      if ($name==='') throw new RuntimeException('A név kötelező.');
+      if (!in_array($type, ['shampoo','conditioner','mask','treatment','styling','other'], true))
+        throw new RuntimeException('Hibás típus.');
+      if ($price < 0) throw new RuntimeException('Az ár nem lehet negatív.');
+
+      $imgPath = (!empty($_FILES['image'])) ? save_product_image($_FILES['image']) : null;
+
+      if ($id > 0) {
+        if ($imgPath) {
+          $sql = "UPDATE products SET brand=?, name=?, type=?, description=?, price=?, image=?, is_active=?, is_featured=? WHERE id=?";
+          $st  = $mysqli->prepare($sql);
+          $st->bind_param('ssssdsiii', $brand,$name,$type,$description,$price,$imgPath,$is_active,$is_featured,$id);
+        } else {
+          $sql = "UPDATE products SET brand=?, name=?, type=?, description=?, price=?, is_active=?, is_featured=? WHERE id=?";
+          $st  = $mysqli->prepare($sql);
+          $st->bind_param('ssssdiii', $brand,$name,$type,$description,$price,$is_active,$is_featured,$id);
+        }
+        $st->execute();
+        $flash['ok'] = 'Termék frissítve.';
+        audit($mysqli,$userId,'update','products',$id);
+      } else {
+        $sql = "INSERT INTO products (brand,name,type,description,price,image,is_active,is_featured) VALUES (?,?,?,?,?,?,?,?)";
+        $st  = $mysqli->prepare($sql);
+        $imgPath = $imgPath ?: '/assets/img/placeholder.png';
+        $st->bind_param('ssssdsii',$brand,$name,$type,$description,$price,$imgPath,$is_active,$is_featured);
+        $st->execute();
+        $flash['ok'] = 'Új termék hozzáadva.';
+        audit($mysqli,$userId,'insert','products',(int)$st->insert_id);
+      }
+    }
+
+    // TERMÉK törlés
+    if (post('action') === 'product_delete') {
+      $id = (int)post('id',0);
+      if ($id>0) {
+        $st = $mysqli->prepare("DELETE FROM products WHERE id=?");
+        $st->bind_param('i',$id); $st->execute();
+        if ($st->affected_rows>0) {
+          $flash['ok'] = 'Termék törölve.';
+          audit($mysqli,$userId,'delete','products',$id);
+        } else $flash['err']='A termék nem törölhető.';
+      }
+    }
+
+    // SZOLGÁLTATÁS mentés
+    if (post('action') === 'service_save') {
+      $id       = (int)post('id',0);
+      $name     = post('name');
+      $minutes  = (int)post('duration_minutes', 0);
+      $price    = (float)str_replace([',',' '], ['.',''], post('price','0'));
+      $desc     = post('description');
+      $active   = post_bool('is_active') ? 1 : 0;
+
+      if ($name==='' || $minutes<=0 || $price<0) throw new RuntimeException('Hiányzó vagy hibás mezők.');
+
+      if ($id>0) {
+        $sql = "UPDATE services SET name=?, duration_minutes=?, price=?, description=?, is_active=? WHERE id=?";
+        $st  = $mysqli->prepare($sql);
+        $st->bind_param('sidsii', $name,$minutes,$price,$desc,$active,$id);
+        $st->execute();
+        $flash['ok'] = 'Szolgáltatás frissítve.';
+        audit($mysqli,$userId,'update','services',$id);
+      } else {
+        $sql = "INSERT INTO services (name,duration_minutes,price,description,is_active) VALUES (?,?,?,?,?)";
+        $st  = $mysqli->prepare($sql);
+        $st->bind_param('sidsi', $name,$minutes,$price,$desc,$active);
+        $st->execute();
+        $flash['ok'] = 'Új szolgáltatás hozzáadva.';
+        audit($mysqli,$userId,'insert','services',(int)$st->insert_id);
+      }
+    }
+
+    // SZOLGÁLTATÁS törlés
+    if (post('action') === 'service_delete') {
+      $id = (int)post('id',0);
+      if ($id>0) {
+        $st=$mysqli->prepare("DELETE FROM services WHERE id=?");
+        $st->bind_param('i',$id); $st->execute();
+        if ($st->affected_rows>0) { $flash['ok']='Szolgáltatás törölve.'; audit($mysqli,$userId,'delete','services',$id); }
+        else $flash['err']='A szolgáltatás nem törölhető.';
+      }
+    }
+  } catch (Throwable $ex) {
+    $flash['err'] = 'Hiba: '.$ex->getMessage();
+  }
+}
+
+// ---- Listák ----
+$products = [];
+$services = [];
+if ($mysqli) {
+  $r = $mysqli->query("SELECT id,brand,name,type,description,price,image,is_active,is_featured FROM products ORDER BY id DESC LIMIT 300");
+  while ($row = $r->fetch_assoc()) {
+    $row['image'] = abs_img($row['image']);
+    $products[] = $row;
+  }
+  $r = $mysqli->query("SELECT id,name,duration_minutes,price,description,is_active FROM services ORDER BY id DESC LIMIT 300");
+  while ($row = $r->fetch_assoc()) $services[] = $row;
+}
+
+// Enum opciók
+$types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatment'=>'Kezelés','styling'=>'Styling','other'=>'Egyéb'];
+?>
+<!doctype html>
 <html lang="hu">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Ikon-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <!-- Bootstrap & CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <title>Admin</title>
+<title>Admin – Hair Heaven</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="/assets/hairheaven.css">
+<style>
+  :root{ --hh-primary:#c76df0; --hh-dark:#1c1a27; --hh-muted:#6c6a75; --hh-bg:#faf7ff; }
+  body{ background:var(--hh-bg); font-size:1.05rem; color:var(--hh-dark); }
+  .card{ box-shadow:0 10px 30px rgba(0,0,0,.06); border:0; border-radius:16px; }
+  .table td,.table th{ vertical-align:middle; }
+  .badge-on{ background:#d9f7da; color:#0a7a18; }
+  .badge-off{ background:#ffeaea; color:#b20b0b; }
+  .thumb{ width:88px; height:88px; object-fit:cover; border-radius:12px; border:1px solid #eee; background:#fff; }
+  .img-preview{ width:100%; max-width:260px; height:260px; object-fit:cover; border-radius:14px; border:1px solid #eee; background:#fff; }
+  .switch-wrap .form-check-input{
+    width:3.2rem; height:1.7rem; cursor:pointer;
+    background-color:#eae6ff; border-color:#d9d1ff;
+  }
+  .switch-wrap .form-check-input:checked{
+    background-color:var(--hh-primary); border-color:var(--hh-primary);
+  }
+  .switch-wrap .form-check-input:focus{ box-shadow:0 0 0 .15rem rgba(199,109,240,.25); }
+</style>
 </head>
-
 <body>
-    <?php include("../navbar.php"); ?>
 
-    <div class="main col-10 mx-auto">
-        <div class="col-12">
-  <!-- Táblázat teteje-->
+<?php $activePage = ''; include __DIR__ . '/../navbar.php'; ?>
 
-            <ul class="nav nav-tabs" id="myTab">
-                <li class="nav-item">
-                    <a href="#felhasznalok" class="nav-link active" data-bs-toggle="tab">Felhasználók</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#megrendelesek" class="nav-link" data-bs-toggle="tab">Megrendelések</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#szerviz" class="nav-link" data-bs-toggle="tab">Szervíz</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#termekek" class="nav-link" data-bs-toggle="tab">Termékek</a>
-                </li>
-            </ul>
+<div class="container-xxl py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3">Admin felület</h1>
+  </div>
 
-  <!-- Felhasználók tábla -->
-   <!-- Felhasználók fejcím -->
-            <div class="tab-content">
-                <div class="tab-pane fade show active" id="felhasznalok">
-                    <div class="card" style="border-top-left-radius: 0;border-top-right-radius: 0;border-top-color: white;">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Név</th>
-                                    <th scope="col">Email</th>
-                                    <th scope="col">Jog</th>
-                                    <th scope="col">Műveletek</th>
-                                </tr>
-                            </thead>
-                     <!-- Felhasználók törzs -->
-                            <tbody>
-                                <?php
+  <?php if ($flash['ok']): ?><div class="alert alert-success"><?= e($flash['ok']) ?></div><?php endif; ?>
+  <?php if ($flash['err']): ?><div class="alert alert-danger"><?= e($flash['err']) ?></div><?php endif; ?>
 
-                                //Az adatbázisból kiszedjük a felhasználók adatait. 
-                                $result = $mysqli->query("SELECT * FROM `users`");
-                                while ($row = $result->fetch_assoc()) {
-                                    $admin = "";
-                                    $guest = "";
+  <ul class="nav nav-tabs" id="admTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabProducts" type="button" role="tab">Termékek</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabServices" type="button" role="tab">Szolgáltatások</button>
+    </li>
+  </ul>
 
-                                    if ($row["jog"] == "admin") {
-                                        $admin = "selected";
-                                    } else {
-                                        $guest = "selected";
-                                    }
-                                    echo '
-                                    <tr>
-                                    <td>' . $row["username"] . '</td>
-                                    <td>' . $row["email"] . '</td>
-                                    
-                                    <form action="/api/updateUser.php" method="post">
-                                    <td>
-                                    <input type="hidden" name="userid" value="' . $row["id"] . '">
-                                    <select name="jog" id="jog">
-                                        <option value="guest" ' . $guest . '>guest</option>
-                                        <option value="admin" ' . $admin . '>admin</option>
-                                    </select>
+  <div class="tab-content mt-3">
 
-                                    <td>
-                                     <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i></button>
-                                      <a class="btn btn-danger" href="/api/deleteUser.php?id=' . $row["id"] . '"><i class="fa fa-trash-o"></i></a></td>
-                                </form>            
-                                </tr>';
-                                }
-
-                                ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                  <!-- Megrendelések tábla -->
-                    <!-- Megrendelések fejcím -->
-                <div class="tab-pane col-12 fade" id="megrendelesek">
-                    <div class="card" style="border-top-left-radius: 0;border-top-right-radius: 0;border-top-color: white;">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Név</th>
-                                    <th scope="col">Email</th>
-                                    <th scope="col">Termékek</th>
-                                    <th scope="col">Összeg</th>
-                                    <th scope="col">Fizetési mód</th>
-                                    <th scope="col">Cím</th>
-                                    <th scope="col">Ország</th>
-                                    <th scope="col">Megye</th>
-                                    <th scope="col">Irányítószám</th>
-                                    <th scope="col">Dátum</th>
-                                </tr>
-                            </thead>
-                         <!-- Megrendelések törzs -->
-                            <tbody>
-                                <?php
-                                //Az adatbázisból kiszedjük a megrendelések adatait. 
-                                $result = $mysqli->query("SELECT * FROM `megrendelesek`");
-                                while ($row = $result->fetch_assoc()) {
-                                    $elemek = array();
-                                    $kosar = $row["kosar"];
-                                    $fizetes = $row["fizetesimod"];
-                                    $price = json_decode($row["kosar"], true)["Total"];
-                                    $items = json_decode($kosar, true);
-                                    foreach ($items["items"] as $key => $value) {
-                                        array_push($elemek, $value["name"]);
-                                    }
-
-                                    echo '
-                                    <tr>
-                                        <td>' . $row["nev"] . '</td>
-                                        <td>' . $row["email"] . '</td>
-                                        <td>' . implode(", ", $elemek) . '</td>
-                                        <td class="text-nowrap">' . number_format($price, 0, " ", " ") . ' Ft</td>
-                                        <td>' . $fizetes . '</td>
-                                        <td>' . $row["cim"] . '</td>
-                                        <td>' . $row["orszag"] . '</td>
-                                        <td>' . $row["megye"] . '</td>
-                                        <td>' . $row["iranyitoszam"] . '</td>
-                                        <td>' . $row["datum"] . '</td>
-                                
-                                    </tr>';
-                                }
-                                ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-   <!-- Szervíz fejcím -->
-                <div class="tab-pane fade" id="szerviz">
-                    <div class="card" style="border-top-left-radius: 0;border-top-right-radius: 0;border-top-color: white;">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Telefon</th>
-                                    <th scope="col">Hiba</th>
-                                    <th scope="col">Email</th>
-                                    <th scope="col">Elérhetőség</th>
-                                </tr>
-                            </thead>
-
-                                  <!-- Szervíz törzs -->
-                            <tbody>
-                                <?php
-
-                                //Az adatbázisból kiszedjük a szervíz adatait. 
-                                $result = $mysqli->query("SELECT `id`, `telefon`, `hiba`, `email`, `elerhetoseg` FROM `szerviz`");
-                                while ($row = $result->fetch_assoc()) {
-                                    echo '
-                                        <tr>
-                                            <td>' . $row["telefon"] . '</td>
-                                            <td>' . $row["hiba"] . '</td>
-                                            <td>' . $row["email"] . '</td>
-                                            <td>' . $row["elerhetoseg"] . '</td>
-
-                                        </tr>';
-                                }
-                                ?>
-
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-
-  <!-- Termékek fejcím -->
-                <div class="tab-pane fade" id="termekek">
-                    <div class="card" style="border-top-left-radius: 0;border-top-right-radius: 0;border-top-color: white;">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Név</th>
-                                    <th scope="col">Márka</th>
-                                    <th scope="col">Ár</th>
-                                    <th scope="col">Leírás</th>
-                                    <th scope="col">Műveletek</th>
-                                </tr>
-                            </thead>
-                              <!-- Termékek törzs -->
-                            <tbody>
-                                <?php
-                                //Az adatbázisból kiszedjük a termékek adatait. 
-                                $result = $mysqli->query("SELECT `id`, `nev`, `marka`, `ar`, `leiras`, `kep`, `letrehozva` FROM `termekek`");
-                                while ($row = $result->fetch_assoc()) {
-
-                                    echo '
-                                        <tr>
-                                            <td>' . $row["nev"] . '</td>
-                                            <td>' . $row["marka"] . '</td>
-                                            <td>' . $row["ar"] . '</td>
-                                            <td>' . $row["leiras"] . '</td>
-
-                                            <td><a class="btn btn-primary" href="termekszerkeztes.php?id=' . $row["id"] . '"><i class="fa fa-edit"></i></a>  <a class="btn btn-danger" href="/api/deleteTermek.php?id=' . $row["id"] . '"><i class="fa fa-trash-o"></i></a></td>
-
-                                        </tr>';
-                                }
-                                ?>
-                            </tbody>
-                        </table>
-  <!-- Termék hozzáadás gomb -->
-
-                        <a class="btn btn-primary" href="termekhozzaadas.php">Termék hozzáadás</a>
-
-                    </div>
-                </div>
+    <!-- TERMÉKEK -->
+    <div class="tab-pane fade show active" id="tabProducts" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-xxl-7 col-lg-7">
+          <div class="card p-3">
+            <h5 class="mb-3">Terméklista</h5>
+            <div class="table-responsive">
+              <table class="table align-middle" id="prodTable">
+                <thead class="table-light">
+                <tr>
+                  <th>#</th><th>Kép</th><th>Márka / Név</th><th>Típus</th><th class="text-end">Ár</th><th>Állapot</th><th class="text-end">Műveletek</th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($products as $p): ?>
+                  <tr data-id="<?= (int)$p['id'] ?>">
+                    <td><?= (int)$p['id'] ?></td>
+                    <td><img src="<?= e($p['image']) ?>" class="thumb" alt=""></td>
+                    <td>
+                      <strong><?= e($p['brand'].' – '.$p['name']) ?></strong>
+                      <?php if (!empty($p['description'])): ?>
+                        <div class="text-muted small"><?= e(mb_strimwidth($p['description'],0,120,'…','UTF-8')) ?></div>
+                      <?php endif; ?>
+                    </td>
+                    <td><?= e($types[$p['type']] ?? $p['type']) ?></td>
+                    <td class="text-end"><?= number_format((float)$p['price'],0,',',' ') ?> Ft</td>
+                    <td>
+                      <span class="badge <?= $p['is_active']?'badge-on':'badge-off' ?>"><?= $p['is_active']?'Aktív':'Inaktív' ?></span>
+                      <?php if ($p['is_featured']): ?><span class="badge text-bg-warning">Kiemelt</span><?php endif; ?>
+                    </td>
+                    <td class="text-end">
+                      <div class="d-inline-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary js-edit-product"
+                                title="Szerkesztés"
+                                data-product='<?= e(json_encode($p)) ?>'>
+                          <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <form method="post" class="d-inline js-del-product">
+                          <?= csrf_field() ?>
+                          <input type="hidden" name="action" value="product_delete">
+                          <input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
+                          <button class="btn btn-sm btn-outline-danger" title="Törlés"><i class="fa-solid fa-trash"></i></button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+                <?php if (empty($products)): ?>
+                  <tr><td colspan="7" class="text-muted">Nincs termék.</td></tr>
+                <?php endif; ?>
+                </tbody>
+              </table>
             </div>
+          </div>
         </div>
+
+        <div class="col-xxl-5 col-lg-5">
+          <div class="card p-3">
+            <h5 class="mb-3" id="pfTitle">Új termék</h5>
+            <form method="post" enctype="multipart/form-data" id="productForm">
+              <?= csrf_field() ?>
+              <input type="hidden" name="action" value="product_save">
+              <input type="hidden" name="id" id="p_id" value="">
+
+              <div class="row g-3">
+                <div class="col-md-8">
+                  <div class="mb-2">
+                    <label class="form-label">Márka</label>
+                    <input class="form-control" name="brand" id="p_brand">
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Név *</label>
+                    <input class="form-control" name="name" id="p_name" required>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Típus</label>
+                    <select class="form-select" name="type" id="p_type">
+                      <?php foreach ($types as $k=>$v): ?>
+                        <option value="<?= e($k) ?>"><?= e($v) ?></option>
+                      <?php endforeach; ?>
+                    </select>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Leírás</label>
+                    <textarea class="form-control" rows="3" name="description" id="p_desc"></textarea>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Ár (Ft) *</label>
+                    <input type="number" min="0" step="1" class="form-control" name="price" id="p_price" required>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Kép (jpg/png/webp)</label>
+                    <input type="file" class="form-control" name="image" id="p_image" accept="image/*">
+                  </div>
+                  <div class="switch-wrap form-check form-switch mb-1">
+                    <input class="form-check-input" type="checkbox" id="p_active" name="is_active" checked>
+                    <label class="form-check-label" for="p_active">Aktív</label>
+                  </div>
+                  <div class="switch-wrap form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="p_feat" name="is_featured">
+                    <label class="form-check-label" for="p_feat">Kiemelt</label>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk me-1"></i> Mentés</button>
+                    <button class="btn btn-outline-secondary" type="button" id="btnResetProduct"><i class="fa-solid fa-rotate-left me-1"></i> Újrakezdem</button>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label">Előnézet</label>
+                  <img id="p_preview" class="img-preview" src="/assets/img/placeholder.png" alt="Előnézet">
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
-    <script src="/bootstrap.bundle.min.js"></script>
+
+    <!-- SZOLGÁLTATÁSOK -->
+    <div class="tab-pane fade" id="tabServices" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-xxl-7 col-lg-7">
+          <div class="card p-3">
+            <h5 class="mb-3">Szolgáltatáslista</h5>
+            <div class="table-responsive">
+              <table class="table align-middle" id="srvTable">
+                <thead class="table-light">
+                <tr><th>#</th><th>Név</th><th>Időtartam</th><th class="text-end">Ár</th><th>Állapot</th><th class="text-end">Műveletek</th></tr>
+                </thead>
+                <tbody>
+                <?php foreach ($services as $s): ?>
+                  <tr data-id="<?= (int)$s['id'] ?>">
+                    <td><?= (int)$s['id'] ?></td>
+                    <td>
+                      <strong><?= e($s['name']) ?></strong>
+                      <?php if (!empty($s['description'])): ?>
+                        <div class="text-muted small"><?= e(mb_strimwidth($s['description'],0,120,'…','UTF-8')) ?></div>
+                      <?php endif; ?>
+                    </td>
+                    <td><?= (int)$s['duration_minutes'] ?> perc</td>
+                    <td class="text-end"><?= number_format((float)$s['price'],0,',',' ') ?> Ft</td>
+                    <td><span class="badge <?= $s['is_active']?'badge-on':'badge-off' ?>"><?= $s['is_active']?'Aktív':'Inaktív' ?></span></td>
+                    <td class="text-end">
+                      <div class="d-inline-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary js-edit-service"
+                                title="Szerkesztés"
+                                data-service='<?= e(json_encode($s)) ?>'>
+                          <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <form method="post" class="d-inline js-del-service">
+                          <?= csrf_field() ?>
+                          <input type="hidden" name="action" value="service_delete">
+                          <input type="hidden" name="id" value="<?= (int)$s['id'] ?>">
+                          <button class="btn btn-sm btn-outline-danger" title="Törlés"><i class="fa-solid fa-trash"></i></button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+                <?php if (empty($services)): ?>
+                  <tr><td colspan="6" class="text-muted">Nincs szolgáltatás.</td></tr>
+                <?php endif; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xxl-5 col-lg-5">
+          <div class="card p-3">
+            <h5 class="mb-3" id="sfTitle">Új szolgáltatás</h5>
+            <form method="post" id="serviceForm">
+              <?= csrf_field() ?>
+              <input type="hidden" name="action" value="service_save">
+              <input type="hidden" name="id" id="s_id" value="">
+              <div class="mb-2">
+                <label class="form-label">Megnevezés *</label>
+                <input class="form-control" name="name" id="s_name" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Időtartam (perc) *</label>
+                <input type="number" min="1" class="form-control" name="duration_minutes" id="s_minutes" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Ár (Ft) *</label>
+                <input type="number" min="0" step="1" class="form-control" name="price" id="s_price" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Leírás</label>
+                <textarea class="form-control" rows="3" name="description" id="s_desc"></textarea>
+              </div>
+              <div class="switch-wrap form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="s_active" name="is_active" checked>
+                <label class="form-check-label" for="s_active">Aktív</label>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk me-1"></i> Mentés</button>
+                <button class="btn btn-outline-secondary" type="button" id="btnResetService"><i class="fa-solid fa-rotate-left me-1"></i> Újrakezdem</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Saját JS külső fájlban – így nincs CSP gond -->
+<script src="/admin/admin.js"></script>
 </body>
 </html>
