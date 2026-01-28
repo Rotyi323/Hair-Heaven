@@ -1,163 +1,136 @@
-  :root{
-    --hh-primary:#c76df0;     /* lila */
-    --hh-primary-weak: rgba(199,109,240,.08);
-    --hh-primary-glow: rgba(199,109,240,.22);
-    --hh-dark:#1c1a27;
-  }
-
-  /* Alap egységesítés minden gombra */
-  .btn {
-    border-radius: 10px;
-    transition: color .15s ease, background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .05s ease;
-  }
-  .btn:active { transform: translateY(0.5px) scale(0.99); }
-
-  /* Lila CTA – kosárba, keresés, stb. */
-  .btn-cta{
-    background: var(--hh-primary);
-    color:#fff;
-    border:0;
-    font-weight:700;
-    letter-spacing:.3px;
-  }
-  .btn-cta:hover,
-  .btn-cta:focus{
-    background: var(--hh-primary);
-    color:#fff;
-    box-shadow: 0 4px 14px var(--hh-primary-glow);
-    filter: brightness(1.05);
-  }
-  .btn-cta:focus-visible{
-    outline: none;
-    box-shadow: 0 0 0 0.2rem var(--hh-primary-weak), 0 6px 18px var(--hh-primary-glow);
-  }
-  .btn-cta:disabled,
-  .btn-cta.disabled{
-    background: var(--hh-primary);
-    opacity:.6;
-    box-shadow:none;
-  }
-
-  /* Sötét kontúros – Bejelentkezés, Részletek, stb. (ne „fehéredjen ki”) */
-  .btn-outline-dark{
-    border-color: #2b2a33;
-    color: #2b2a33;
-    background: transparent;
-  }
-  .btn-outline-dark:hover,
-  .btn-outline-dark:focus{
-    border-color: var(--hh-primary);
-    color: var(--hh-primary);
-    background: var(--hh-primary-weak);
-    box-shadow: 0 4px 14px var(--hh-primary-glow);
-  }
-  .btn-outline-dark:focus-visible{
-    outline: none;
-    box-shadow: 0 0 0 0.2rem var(--hh-primary-weak), 0 6px 18px var(--hh-primary-glow);
-  }
-
-  /* Sötét (ha néhol sima .btn-dark-ot használsz) – passzoljon a témához */
-  .btn-dark{
-    background:#2b2a33;
-    border-color:#2b2a33;
-    color:#fff;
-  }
-  .btn-dark:hover,
-  .btn-dark:focus{
-    background:#25242c;
-    border-color:#25242c;
-    box-shadow: 0 4px 14px rgba(37,36,44,.25);
-  }
-
-  /* Kisebb esztétikai finomítás: ikon és szöveg távolság egységesen */
-  .btn i { margin-right:.35rem; }
-
-/* =========================
-   NAVBAR & GLOBAL SIZING XL
-   ========================= */
 :root{
-  --hh-nav-height: 72px;
-  --hh-nav-font:   1rem;   /* nav linkek alap méret */
-  --hh-nav-brand:  1.65rem;/* márkanév méret */
-  --hh-nav-btn-py: .60rem; /* nav gomb függőleges padding */
-  --hh-nav-btn-px: 1.00rem;
-  --hh-avatar:     62px;   /* navbar avatar átmérő */
-}
+  --hh-primary:#c76df0;            /* lila */
+  --hh-primary-weak: rgba(199,109,240,.08);
+  --hh-primary-glow: rgba(199,109,240,.22);
+  --hh-dark:#1c1a27;
+  --hh-muted:#6c6a75;
 
-/* nagyobb kijelzőkön még egy kicsi plusz */
+  /* NAV méretezés */
+  --hh-nav-height: 60px;
+  --hh-nav-font:   1.10rem;
+  --hh-nav-brand:  1.95rem;
+  --hh-nav-btn-py: .70rem;
+  --hh-nav-btn-px: 1.10rem;
+  --hh-avatar:     56px;
+}
 @media (min-width: 992px){
   :root{
-    --hh-nav-height: 80px;
-    --hh-nav-font:   1.06rem;
-    --hh-nav-brand:  1.85rem;
-    --hh-avatar:     62px;
+    --hh-nav-height: 76px;
+    --hh-nav-font:   1.16rem;
+    --hh-nav-brand:  2.05rem;
+    --hh-avatar:     60px;
   }
 }
 
-/* NAVBAR blokkok */
+/* =========================
+   GOMBOK – egységes stílus
+   ========================= */
+.btn{
+  border-radius:10px;
+  transition:color .15s ease, background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .05s ease;
+}
+.btn:active{ transform: translateY(.5px) scale(.99); }
+
+.btn-cta{
+  background:var(--hh-primary); color:#fff; border:0; font-weight:700; letter-spacing:.3px;
+}
+.btn-cta:hover,.btn-cta:focus{
+  background:var(--hh-primary); color:#fff; filter:brightness(1.05);
+  box-shadow:0 4px 14px var(--hh-primary-glow);
+}
+.btn-cta:focus-visible{ outline:none; box-shadow:0 0 0 .2rem var(--hh-primary-weak), 0 6px 18px var(--hh-primary-glow); }
+.btn-cta:disabled,.btn-cta.disabled{ background:var(--hh-primary); opacity:.6; box-shadow:none; }
+
+.btn-outline-dark{
+  border-color:#2b2a33; color:#2b2a33; background:transparent;
+}
+.btn-outline-dark:hover,.btn-outline-dark:focus{
+  border-color:var(--hh-primary); color:var(--hh-primary); background:var(--hh-primary-weak);
+  box-shadow:0 4px 14px var(--hh-primary-glow);
+}
+.btn-dark{ background:#2b2a33; border-color:#2b2a33; color:#fff; }
+.btn-dark:hover,.btn-dark:focus{ background:#25242c; border-color:#25242c; box-shadow:0 4px 14px rgba(37,36,44,.25); }
+.btn i{ margin-right:.35rem; }
+
+/* =========================
+   NAVBAR – elosztás / tipó
+   ========================= */
 .navbar{
-  min-height: var(--hh-nav-height);
-  background:#fff;
-  box-shadow:0 6px 20px rgba(0,0,0,.06);
+  background:#fff; box-shadow:0 6px 20px rgba(0,0,0,.06);
+  min-height:var(--hh-nav-height);
 }
+
+/* a container igazából flex: helyes elosztáshoz kap egy kis gap-et */
+.navbar .container{
+  display:flex; align-items:center; gap:.75rem;
+}
+
+/* a collapse 100% szélességet kap, a két UL-t széthúzzuk */
+#hhNav{
+  display:flex; align-items:center; justify-content:space-between; width:100%;
+}
+
+/* BAL oldali főmenü – több hely, kényelmes távolságok */
+#hhNav .navbar-nav.me-auto{
+  flex:1 1 auto;                      /* ez engedi, hogy a menü kitöltse a középső sávot */
+  justify-content:flex-start;
+  gap:.25rem;
+}
+@media (min-width:992px){
+  #hhNav .navbar-nav.me-auto{ gap:1.25rem; }
+}
+
+/* JOBB oldali blokk (Kosár + Profil) – tiszta ritmus */
+#hhNav .navbar-nav.ms-auto{
+  flex:0 0 auto; display:flex; align-items:center; gap:.75rem;
+}
+#hhNav .navbar-nav.ms-auto > .nav-item{ margin:0; } /* felülírjuk az esetleges me-2-t */
+
+/* Logó: kisebb jobb oldali távolság */
 .navbar-brand{
-  font-weight:800;
-  letter-spacing:.5px;
-  font-size: var(--hh-nav-brand);
-  color: var(--hh-dark);
+  font-weight:800; letter-spacing:.5px; color:var(--hh-dark);
+  font-size:var(--hh-nav-brand); margin-right:.5rem;
 }
-.navbar-brand .dot{ color: var(--hh-primary); }
+.navbar-brand .dot{ color:var(--hh-primary); }
 
+/* Fő menü linkek – nagyobb, tágasabb */
 .navbar .nav-link{
-  font-weight: 600;
-  font-size: var(--hh-nav-font);
-  padding: .6rem .9rem;
-  color: var(--hh-dark);
+  font-weight:700; color:var(--hh-dark); transition:color .15s ease;
+  font-size:var(--hh-nav-font); padding:.75rem 1.05rem; letter-spacing:.2px;
 }
-.navbar .nav-link:hover,
-.navbar .nav-link.active{
-  color: var(--hh-primary);
+.navbar .nav-link:hover,.navbar .nav-link.active{ color:var(--hh-primary); }
+
+/* NAV gombok nagyobbak */
+.navbar .btn,.navbar .btn-cta{
+  font-size:1rem; padding:var(--hh-nav-btn-py) var(--hh-nav-btn-px); border-radius:12px;
 }
 
-/* navbar gombok kényelmesebb méretben */
-.navbar .btn,
-.navbar .btn-cta{
-  font-size: .98rem;
-  padding: var(--hh-nav-btn-py) var(--hh-nav-btn-px);
-  border-radius: 12px;
-}
-
-/* avatar a navbarban */
+/* Profil avatar a jobb oldalon */
 .navbar .profile-thumb{
-  width: var(--hh-avatar);
-  height: var(--hh-avatar);
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #fff;
-  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  width:var(--hh-avatar); height:var(--hh-avatar);
+  border-radius:50%; object-fit:cover; border:2px solid #fff;
+  box-shadow:0 4px 12px rgba(0,0,0,.15);
+}
+
+/* Mobilon a bal és jobb listák egymás alatt – kényelmesebb sorközök */
+@media (max-width:991.98px){
+  #hhNav{ flex-direction:column; align-items:stretch; gap:.5rem; }
+  #hhNav .navbar-nav.me-auto{ justify-content:flex-start; gap:.25rem; }
+  #hhNav .navbar-nav.ms-auto{ justify-content:flex-start; gap:.5rem; }
 }
 
 /* =========================
-   PROFIL – nagyobb előnézet
+   PROFIL – előnézet (oldalak)
    ========================= */
 .avatar-preview{
-  width: 215px;
-  height: 215px;
-  border-radius: 25%;
-  object-fit: cover;
-  border: 4px solid #fff;
-  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  width:215px; height:215px; border-radius:25%;
+  object-fit:cover; border:4px solid #fff; box-shadow:0 8px 24px rgba(0,0,0,.12);
 }
-@media (max-width: 576px){
-  .avatar-preview{ width: 130px; height: 130px; }
+@media (max-width:576px){
+  .avatar-preview{ width:130px; height:130px; }
 }
 
-/* általános CTA gomb – marad a mozgékony, nem “eltűnős” hover */
-.btn-cta{
-  background: var(--hh-primary);
-  border:0;
-  font-weight:700;
-  letter-spacing:.3px;
-}
-.btn-cta:hover{ filter: brightness(1.05); transform: translateY(-1px); }
-.btn-cta:active{ transform: translateY(0); }
+/* CTA anim finomítás */
+.btn-cta{ background:var(--hh-primary); border:0; font-weight:700; letter-spacing:.3px; }
+.btn-cta:hover{ filter:brightness(1.05); transform:translateY(-1px); }
+.btn-cta:active{ transform:translateY(0); }

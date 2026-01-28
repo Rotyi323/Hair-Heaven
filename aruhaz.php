@@ -241,40 +241,7 @@ function qs_without_page(){
 <!-- NAVBAR -->
 <?php $activePage = 'shop'; include __DIR__ . '/navbar.php'; ?>
 
-  <div class="container">
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#hhNav" aria-controls="hhNav" aria-expanded="false" aria-label="Menü">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="hhNav">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link" href="/">Főoldal</a></li>
-        <li class="nav-item"><a class="nav-link active" href="/aruhaz.php">Áruház</a></li>
-        <li class="nav-item"><a class="nav-link" href="/szolgaltatasok.php">Szolgáltatások</a></li>
-        <li class="nav-item"><a class="nav-link" href="/ugyfelek.php">Elégedett vásárlók</a></li>
-      </ul>
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item me-2">
-          <a class="btn btn-sm btn-outline-dark" href="/kosar.php"><i class="fa-solid fa-bag-shopping me-1"></i> Kosár</a>
-        </li>
-        <?php if ($isLogged): ?>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-              <i class="fa-solid fa-user"></i> <?= e($username ?: 'Profil') ?>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="/profil.php">Profilom</a></li>
-              <li><a class="dropdown-item" href="/rendeleseim.php">Rendeléseim</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" href="/logout.php">Kijelentkezés</a></li>
-            </ul>
-          </li>
-        <?php else: ?>
-          <li class="nav-item"><a class="btn btn-sm btn-cta text-white" href="/belepes.php"><i class="fa-solid fa-right-to-bracket me-1"></i> Bejelentkezés</a></li>
-        <?php endif; ?>
-      </ul>
-    </div>
-  </div>
-</nav>
+
 
 <!-- FEJLÉC -->
 <div class="container mt-4">

@@ -6,7 +6,7 @@ require_once __DIR__ . '/../connect.php';
 
 $mysqli = db();
 
-// ---- Jogosultság ellenőrzés (csak owner) ----
+// ---- Jogosultság (csak owner) ----
 if (empty($_SESSION['belepve']) || ($_SESSION['role'] ?? '') !== 'owner') {
   http_response_code(403);
   echo 'Hozzáférés megtagadva.'; exit;
@@ -23,7 +23,7 @@ function abs_img(?string $p): string {
 function post($k,$d=''){ return isset($_POST[$k]) ? trim((string)$_POST[$k]) : $d; }
 function post_bool($k){ return isset($_POST[$k]) && ($_POST[$k]==='1' || $_POST[$k]==='on'); }
 
-// --- secure upload (termék kép)
+// --- biztonságos feltöltés (termék kép)
 function save_product_image(array $file): ?string {
   if (empty($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) return null;
   $allowed = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
@@ -38,7 +38,7 @@ function save_product_image(array $file): ?string {
   return '/uploads/products/'.$name;
 }
 
-// --- audit
+// --- audit log
 function audit(mysqli $db, int $userId, string $action, string $entity, ?int $entityId){
   try{
     $sql = "INSERT INTO audit_log (user_id, action, entity, entity_id) VALUES (?,?,?,?)";
@@ -182,22 +182,54 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <link rel="stylesheet" href="/assets/hairheaven.css">
 <style>
-  :root{ --hh-primary:#c76df0; --hh-dark:#1c1a27; --hh-muted:#6c6a75; --hh-bg:#faf7ff; }
-  body{ background:var(--hh-bg); font-size:1.05rem; color:var(--hh-dark); }
-  .card{ box-shadow:0 10px 30px rgba(0,0,0,.06); border:0; border-radius:16px; }
+  :root{
+    --hh-primary:#c76df0; --hh-dark:#1c1a27; --hh-muted:#6c6a75; --hh-bg:#faf7ff;
+    --card-radius:16px;
+  }
+  body{ background:var(--hh-bg); font-size:1.06rem; color:var(--hh-dark); }
+
+
+  .container-xxl{ max-width:1700px; }
+
+  .card{ box-shadow:0 10px 30px rgba(0,0,0,.06); border:0; border-radius:var(--card-radius); }
+  .card h5{ font-weight:800; }
   .table td,.table th{ vertical-align:middle; }
   .badge-on{ background:#d9f7da; color:#0a7a18; }
   .badge-off{ background:#ffeaea; color:#b20b0b; }
-  .thumb{ width:88px; height:88px; object-fit:cover; border-radius:12px; border:1px solid #eee; background:#fff; }
-  .img-preview{ width:100%; max-width:260px; height:260px; object-fit:cover; border-radius:14px; border:1px solid #eee; background:#fff; }
+  .thumb{ width:100px; height:100px; object-fit:cover; border-radius:12px; border:1.6px solid #000000; background:#fff; }
+
+
+  #prodTable th:nth-child(4), #prodTable td:nth-child(4){ min-width:120px; }
+  #prodTable th:nth-child(5), #prodTable td:nth-child(5){ min-width:120px; }
+
+  
+  .img-preview{ width:100%; max-width:370px; height:370px; object-fit:cover; border-radius:16px; border:1px solid #eee; background:#fff; }
+
+  /* switch*/
   .switch-wrap .form-check-input{
     width:3.2rem; height:1.7rem; cursor:pointer;
-    background-color:#eae6ff; border-color:#d9d1ff;
+    background-color:#ece7ff; border-color:#ded4ff;
   }
   .switch-wrap .form-check-input:checked{
     background-color:var(--hh-primary); border-color:var(--hh-primary);
   }
   .switch-wrap .form-check-input:focus{ box-shadow:0 0 0 .15rem rgba(199,109,240,.25); }
+  .switch-row{ display:flex; align-items:center; gap:.65rem; }
+  .switch-row + .switch-row{ margin-top:.35rem; }
+  .switch-row label{ margin:0 0 0 .25rem; font-weight:600; min-width:72px; }
+
+  /* TAB */
+  .admin-tabs{ border-bottom:2px solid #efe9ff; }
+  .admin-tabs .nav-link{
+    border:0; color:var(--hh-muted); font-weight:800;
+    padding:.7rem 1.1rem; border-radius:12px 12px 0 0;
+  }
+  .admin-tabs .nav-link:hover{ color:#7e3dbf; }
+  .admin-tabs .nav-link.active{
+    color:#fff;
+    background:linear-gradient(135deg,#c76df0,#8f4be2);
+    box-shadow:0 8px 18px rgba(143,75,226,.25);
+  }
 </style>
 </head>
 <body>
@@ -212,20 +244,29 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
   <?php if ($flash['ok']): ?><div class="alert alert-success"><?= e($flash['ok']) ?></div><?php endif; ?>
   <?php if ($flash['err']): ?><div class="alert alert-danger"><?= e($flash['err']) ?></div><?php endif; ?>
 
-  <ul class="nav nav-tabs" id="admTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabProducts" type="button" role="tab">Termékek</button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabServices" type="button" role="tab">Szolgáltatások</button>
-    </li>
-  </ul>
+<!-- Lilás tab gombok -->
+<ul class="nav admin-tabs" id="admTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabProducts" type="button" role="tab">Termékek</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabServices" type="button" role="tab">Szolgáltatások</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <a class="nav-link" href="/admin/stock.php" role="tab">
+      Készlet
+    </a>
+  </li>
+</ul>
+
 
   <div class="tab-content mt-3">
 
     <!-- TERMÉKEK -->
     <div class="tab-pane fade show active" id="tabProducts" role="tabpanel">
       <div class="row g-3">
+
+        <!-- BAL  táblázat (7/12) -->
         <div class="col-xxl-7 col-lg-7">
           <div class="card p-3">
             <h5 class="mb-3">Terméklista</h5>
@@ -260,7 +301,7 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
                                 data-product='<?= e(json_encode($p)) ?>'>
                           <i class="fa-solid fa-pen-to-square"></i>
                         </button>
-                        <form method="post" class="d-inline js-del-product">
+                        <form method="post" class="d-inline js-del-product" onsubmit="return confirm('Biztosan törlöd?');">
                           <?= csrf_field() ?>
                           <input type="hidden" name="action" value="product_delete">
                           <input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
@@ -279,6 +320,7 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
           </div>
         </div>
 
+        <!-- JOBB – űrlap + előnézet (5/12), belül 6/6 hogy a kép szélesebb lehessen -->
         <div class="col-xxl-5 col-lg-5">
           <div class="card p-3">
             <h5 class="mb-3" id="pfTitle">Új termék</h5>
@@ -287,8 +329,8 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
               <input type="hidden" name="action" value="product_save">
               <input type="hidden" name="id" id="p_id" value="">
 
-              <div class="row g-3">
-                <div class="col-md-8">
+              <div class="row g-4">
+                <div class="col-md-6">
                   <div class="mb-2">
                     <label class="form-label">Márka</label>
                     <input class="form-control" name="brand" id="p_brand">
@@ -307,7 +349,7 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
                   </div>
                   <div class="mb-2">
                     <label class="form-label">Leírás</label>
-                    <textarea class="form-control" rows="3" name="description" id="p_desc"></textarea>
+                    <textarea class="form-control" rows="4" name="description" id="p_desc"></textarea>
                   </div>
                   <div class="mb-2">
                     <label class="form-label">Ár (Ft) *</label>
@@ -317,28 +359,35 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
                     <label class="form-label">Kép (jpg/png/webp)</label>
                     <input type="file" class="form-control" name="image" id="p_image" accept="image/*">
                   </div>
-                  <div class="switch-wrap form-check form-switch mb-1">
-                    <input class="form-check-input" type="checkbox" id="p_active" name="is_active" checked>
-                    <label class="form-check-label" for="p_active">Aktív</label>
+
+                  <div class="mt-3">
+                    <div class="switch-row switch-wrap form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="p_active" name="is_active" checked>
+                      <label class="form-check-label" for="p_active">Aktív</label>
+                    </div>
+                    <div class="switch-row switch-wrap form-check form-switch">
+                      <input class="form-check-input" type="checkbox" id="p_feat" name="is_featured">
+                      <label class="form-check-label" for="p_feat">Kiemelt</label>
+                    </div>
                   </div>
-                  <div class="switch-wrap form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" id="p_feat" name="is_featured">
-                    <label class="form-check-label" for="p_feat">Kiemelt</label>
-                  </div>
-                  <div class="d-flex gap-2">
+
+                  <div class="d-flex gap-2 mt-3">
                     <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk me-1"></i> Mentés</button>
                     <button class="btn btn-outline-secondary" type="button" id="btnResetProduct"><i class="fa-solid fa-rotate-left me-1"></i> Újrakezdem</button>
                   </div>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-6">
                   <label class="form-label">Előnézet</label>
-                  <img id="p_preview" class="img-preview" src="/assets/img/placeholder.png" alt="Előnézet">
+                  <div class="text-center">
+                    <img id="p_preview" class="img-preview" src="/assets/img/placeholder.png" alt="Előnézet">
+                  </div>
                 </div>
               </div>
             </form>
           </div>
         </div>
+
       </div>
     </div>
 
@@ -373,7 +422,7 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
                                 data-service='<?= e(json_encode($s)) ?>'>
                           <i class="fa-solid fa-pen-to-square"></i>
                         </button>
-                        <form method="post" class="d-inline js-del-service">
+                        <form method="post" class="d-inline js-del-service" onsubmit="return confirm('Biztosan törlöd?');">
                           <?= csrf_field() ?>
                           <input type="hidden" name="action" value="service_delete">
                           <input type="hidden" name="id" value="<?= (int)$s['id'] ?>">
@@ -413,9 +462,9 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
               </div>
               <div class="mb-2">
                 <label class="form-label">Leírás</label>
-                <textarea class="form-control" rows="3" name="description" id="s_desc"></textarea>
+                <textarea class="form-control" rows="4" name="description" id="s_desc"></textarea>
               </div>
-              <div class="switch-wrap form-check form-switch mb-3">
+              <div class="switch-row switch-wrap form-check form-switch mb-3">
                 <input class="form-check-input" type="checkbox" id="s_active" name="is_active" checked>
                 <label class="form-check-label" for="s_active">Aktív</label>
               </div>
@@ -428,12 +477,10 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Saját JS külső fájlban – így nincs CSP gond -->
 <script src="/admin/admin.js"></script>
 </body>
 </html>

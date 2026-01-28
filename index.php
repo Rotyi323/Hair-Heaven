@@ -5,7 +5,7 @@ require_once __DIR__ . '/connect.php';
 
 $mysqli = db(); 
 
-//  Egyszerű adatlekérő helper (hiba esetén üres tömb) 
+//  Egyszerű adatlekérő helper (hiba esetén üres tömb)
 function fetch_all_assoc(?mysqli $mysqli, string $sql): array {
   if (!$mysqli) return [];
   try {
@@ -19,7 +19,7 @@ function fetch_all_assoc(?mysqli $mysqli, string $sql): array {
   }
 }
 
-// banner
+// ---- Bannerek
 $banners = fetch_all_assoc($mysqli, "
   SELECT id, title, image_path, link_url
   FROM banners
@@ -27,7 +27,6 @@ $banners = fetch_all_assoc($mysqli, "
   ORDER BY id DESC
   LIMIT 5
 ");
-
 
 $slides = [];
 if (!empty($banners)) {
@@ -58,13 +57,13 @@ if (!empty($banners)) {
       'title' => 'Top ajánlatok & kedvencek – fedezd fel!',
       'href1' => '/aruhaz.php',
       'text1' => 'Felfedezem',
-      'href2' => '/ugyfelek.php',
-      'text2' => 'Elégedett vásárlók',
+      'href2' => '/aruhaz.php', // NINCS többé elégedett vásárlók oldal
+      'text2' => 'Áruház',
     ],
   ];
 }
 
-// --- KIEMELT TERMÉKEK ---
+// ---- Kiemelt termékek
 $featured = fetch_all_assoc($mysqli, "
   SELECT id, brand, name, price, image
   FROM products
@@ -81,7 +80,7 @@ if (empty($featured)) {
   ];
 }
 
-// --- SZOLGÁLTATÁSOK ---
+// ---- Szolgáltatások
 $services = fetch_all_assoc($mysqli, "
   SELECT id, name, duration_minutes, price, description
   FROM services
@@ -97,7 +96,7 @@ if (empty($services)) {
   ];
 }
 
-// --- ELÉGEDETT VÁSÁRLÓK ---
+// ---- Vevői profil képek + komment (CSAK DÍSZ, nincs CTA)
 $profiles = fetch_all_assoc($mysqli, "
   SELECT id, display_name, avatar, bio, favorite_brand
   FROM public_profiles
@@ -125,7 +124,6 @@ if (empty($profiles)) {
   <style>
     :root{ --hh-primary:#c76df0; --hh-dark:#1c1a27; --hh-muted:#6c6a75; --hh-bg:#faf7ff; }
     body{ background:var(--hh-bg); color:var(--hh-dark); }
-
 
     .hero-carousel{ margin-bottom:1.5rem; border:.25rem solid #0b0b0b; border-radius:12px; overflow:hidden; }
     .hero-carousel .carousel-item{ height:42rem; position:relative; color:#fff; }
@@ -288,7 +286,6 @@ if (empty($profiles)) {
             </div>
             <div class="service-chip mb-2"><i class="fa-regular fa-clock me-1"></i> <?= (int)$s['duration_minutes'] ?> perc</div>
             <p class="mb-3"><?= htmlspecialchars($s['description'], ENT_QUOTES, 'UTF-8') ?></p>
-            <!-- ITT módosítottam: mindig a szolgáltatások oldalra visz -->
             <a href="/szolgaltatasok.php" class="btn btn-cta text-white">Időpontot foglalok</a>
           </div>
         </div>
@@ -297,17 +294,15 @@ if (empty($profiles)) {
   </div>
 </section>
 
-<!-- ELÉGEDETT VÁSÁRLÓK TEASER -->
+<!-- „Vásárlóink mondták” – dísz: kép + komment, NINCS CTA -->
 <section class="py-5">
   <div class="container">
     <div class="d-flex align-items-end justify-content-between mb-3">
       <div>
-        <h2 class="section-title">Elégedett vásárlók</h2>
+        <h2 class="section-title">Vásárlóink mondták</h2>
         <p class="section-sub mb-0">Valódi arcok, valódi történetek – inspirálódj!</p>
       </div>
-      <a class="btn btn-outline-dark btn-sm" href="/ugyfelek.php">
-        Minden profil <i class="fa-solid fa-arrow-right ms-1"></i>
-      </a>
+      <!-- NINCS „Minden profil” gomb -->
     </div>
     <div class="row g-4">
       <?php foreach ($profiles as $pr): ?>
@@ -323,14 +318,13 @@ if (empty($profiles)) {
               </div>
             </div>
             <?php if (!empty($pr['bio'])): ?>
-              <p class="mb-3"><?= htmlspecialchars($pr['bio'], ENT_QUOTES, 'UTF-8') ?></p>
+              <p class="mb-0"><?= htmlspecialchars($pr['bio'], ENT_QUOTES, 'UTF-8') ?></p>
             <?php endif; ?>
-            <a class="btn btn-outline-dark btn-sm" href="/ugyfel.php?id=<?= (int)$pr['id'] ?>">Megnézem a profilját</a>
           </div>
         </div>
       <?php endforeach; ?>
       <?php if (empty($profiles)): ?>
-        <div class="col-12"><div class="alert alert-secondary">Még nincs feltöltött profil. Hamarosan!</div></div>
+        <div class="col-12"><div class="alert alert-secondary">Hamarosan érkeznek a visszajelzések!</div></div>
       <?php endif; ?>
     </div>
   </div>

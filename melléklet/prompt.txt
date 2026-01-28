@@ -1,2 +1,0 @@
-prompt
-profi, most ugyanezeket figyelembe véve legyen egy bejelentkezés oldal is, ha sikeres a bejelentkezés dobjon a főoldalra és tűnjön el a navbarból a regisztráció és a bejelentkezés és helyette legyen egy legördülő lista szerű stílusos profil oldal, mellette a profilképpel

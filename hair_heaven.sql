@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: 127.0.0.1
--- Létrehozás ideje: 2026. Jan 06. 16:46
+-- Létrehozás ideje: 2026. Jan 28. 19:31
 -- Kiszolgáló verziója: 10.4.27-MariaDB
 -- PHP verzió: 8.2.0
 
@@ -35,6 +35,40 @@ CREATE TABLE `audit_log` (
   `entity_id` int(11) DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
+
+--
+-- A tábla adatainak kiíratása `audit_log`
+--
+
+INSERT INTO `audit_log` (`id`, `user_id`, `action`, `entity`, `entity_id`, `created_at`) VALUES
+(1, 2, 'insert', 'products', 5, '2026-01-06 16:57:27'),
+(2, 2, 'delete', 'services', 3, '2026-01-06 16:58:53'),
+(3, 2, 'insert', 'services', 4, '2026-01-06 16:59:57'),
+(4, 2, 'delete', 'products', 5, '2026-01-06 17:00:00'),
+(5, 2, 'insert', 'services', 5, '2026-01-06 17:44:24'),
+(6, 2, 'delete', 'services', 5, '2026-01-06 17:44:38'),
+(7, 2, 'update', 'products', 3, '2026-01-06 17:49:53'),
+(8, 2, 'insert', 'products', 6, '2026-01-06 18:52:55'),
+(9, 2, 'delete', 'products', 6, '2026-01-06 18:52:59'),
+(10, 2, 'update', 'products', 3, '2026-01-13 20:56:34'),
+(11, 2, 'update', 'services', 2, '2026-01-28 17:13:46'),
+(12, 2, 'update', 'services', 2, '2026-01-28 17:13:57'),
+(13, 2, 'insert', 'services', 6, '2026-01-28 17:51:35'),
+(14, 2, 'insert', 'services', 7, '2026-01-28 17:55:27'),
+(15, 2, 'insert', 'services', 8, '2026-01-28 17:56:19'),
+(16, 2, 'update', 'services', 2, '2026-01-28 17:56:43'),
+(17, 2, 'update', 'services', 1, '2026-01-28 17:56:51'),
+(18, 2, 'purchase', 'products', 1, '2026-01-28 18:51:46'),
+(19, 2, 'purchase', 'products', 1, '2026-01-28 18:52:19'),
+(20, 2, 'purchase', 'products', 1, '2026-01-28 18:52:28'),
+(21, 2, 'purchase', 'products', 1, '2026-01-28 18:52:58'),
+(22, 2, 'purchase', 'products', 4, '2026-01-28 18:53:19'),
+(23, 2, 'purchase', 'products', 3, '2026-01-28 18:53:59'),
+(24, 2, 'purchase', 'products', 3, '2026-01-28 19:08:01'),
+(25, 2, 'purchase', 'products', 2, '2026-01-28 19:08:32'),
+(26, 2, 'purchase', 'products', 2, '2026-01-28 19:18:57'),
+(27, 2, 'purchase', 'products', 3, '2026-01-28 19:19:00'),
+(28, 2, 'purchase', 'products', 4, '2026-01-28 19:19:20');
 
 -- --------------------------------------------------------
 
@@ -106,9 +140,12 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `user_id`, `total_amount`, `status`, `customer_name`, `customer_email`, `customer_address`, `created_at`) VALUES
-(1, 2, '119820.00', 'new', 'Admin', 'admin@gmail.com', '', '2026-01-05 15:47:16'),
 (2, 2, '53580.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-05 17:32:30'),
-(3, 2, '61440.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-06 00:31:28');
+(3, 2, '61440.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-06 00:31:28'),
+(4, 2, '25130.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-06 19:06:33'),
+(5, 2, '117896.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-13 20:55:19'),
+(6, 2, '11998.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-28 18:54:57'),
+(7, 2, '67508.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-28 19:19:07');
 
 -- --------------------------------------------------------
 
@@ -130,14 +167,54 @@ CREATE TABLE `order_items` (
 --
 
 INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `product_name`, `unit_price`, `qty`) VALUES
-(1, 1, 1, 'Fructis Goodbye Damage', '3490.00', 6),
-(2, 1, 3, 'Color Protect Mask', '5990.00', 3),
-(3, 1, 4, 'Scalp Elixir Treatment', '8990.00', 9),
 (4, 2, 3, 'Color Protect Mask', '5990.00', 3),
 (5, 2, 2, 'Deep Cleanse Shampoo', '4190.00', 6),
 (6, 2, 1, 'Fructis Goodbye Damage', '3490.00', 3),
 (7, 3, 2, 'Deep Cleanse Shampoo', '4190.00', 8),
-(8, 3, 1, 'Fructis Goodbye Damage', '3490.00', 8);
+(8, 3, 1, 'Fructis Goodbye Damage', '3490.00', 8),
+(9, 4, 2, 'Deep Cleanse Shampoo', '4190.00', 1),
+(10, 4, 1, 'Fructis Goodbye Damage', '3490.00', 6),
+(11, 5, 1, 'Fructis Goodbye Damage', '3490.00', 7),
+(12, 5, 3, 'Color Protect Mask', '5991.00', 6),
+(13, 5, 2, 'Deep Cleanse Shampoo', '4190.00', 3),
+(14, 5, 4, 'Scalp Elixir Treatment', '8990.00', 5),
+(15, 6, 3, 'Color Protect Mask', '5999.00', 2),
+(16, 7, 2, 'Deep Cleanse Shampoo', '4190.00', 3),
+(17, 7, 3, 'Color Protect Mask', '5999.00', 2),
+(18, 7, 1, 'Fructis Goodbye Damage', '3490.00', 2),
+(19, 7, 4, 'Scalp Elixir Treatment', '8990.00', 4);
+
+--
+-- Eseményindítók `order_items`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_oi_after_delete` AFTER DELETE ON `order_items` FOR EACH ROW BEGIN
+  UPDATE products SET stock_qty = stock_qty + OLD.qty WHERE id = OLD.product_id;
+  INSERT INTO stock_movements(product_id, qty_change, reason, ref_id)
+  VALUES(OLD.product_id, +OLD.qty, 'order', OLD.order_id);
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_oi_after_insert` AFTER INSERT ON `order_items` FOR EACH ROW BEGIN
+  UPDATE products SET stock_qty = stock_qty - NEW.qty WHERE id = NEW.product_id;
+  INSERT INTO stock_movements(product_id, qty_change, reason, ref_id)
+  VALUES(NEW.product_id, -NEW.qty, 'order', NEW.order_id);
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_oi_after_update` AFTER UPDATE ON `order_items` FOR EACH ROW BEGIN
+  DECLARE d INT;
+  SET d = NEW.qty - OLD.qty;               -- ha +, több fogyott; ha -, visszakerül
+  IF d <> 0 THEN
+    UPDATE products SET stock_qty = stock_qty - d WHERE id = NEW.product_id;
+    INSERT INTO stock_movements(product_id, qty_change, reason, ref_id)
+    VALUES(NEW.product_id, -d, 'order', NEW.order_id);
+  END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -152,6 +229,8 @@ CREATE TABLE `products` (
   `type` enum('shampoo','conditioner','mask','treatment','styling','other') NOT NULL,
   `description` text DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
+  `cost_price` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `stock_qty` int(11) NOT NULL DEFAULT 0,
   `image` varchar(255) DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `is_featured` tinyint(1) NOT NULL DEFAULT 0,
@@ -163,11 +242,11 @@ CREATE TABLE `products` (
 -- A tábla adatainak kiíratása `products`
 --
 
-INSERT INTO `products` (`id`, `brand`, `name`, `type`, `description`, `price`, `image`, `is_active`, `is_featured`, `created_at`, `updated_at`) VALUES
-(1, 'Garnier', 'Fructis Goodbye Damage', 'conditioner', 'Erősítő balzsam a károsult hajra', '3490.00', 'uploads/products/garnier fructis.jpg', 1, 1, '2025-11-13 19:06:29', '2025-11-13 21:06:29'),
-(2, 'Schwarzkopf', 'Deep Cleanse Shampoo', 'shampoo', 'Mélytisztító sampon zsíros fejbőrre.', '4190.00', 'uploads/products/2.jpg', 1, 0, '2025-11-13 19:06:29', '2025-11-13 19:06:29'),
-(3, 'L\'Oréal', 'Color Protect Mask', 'mask', 'Színvédő hajpakolás festett hajra.', '5990.00', 'uploads/products/loreal protect mask.jpg', 1, 1, '2025-11-13 19:06:29', '2025-11-13 20:00:45'),
-(4, 'Kérastase', 'Scalp Elixir Treatment', 'treatment', 'Fejbőrerősítő, kúrakezeléshez.', '8990.00', 'uploads/products/4.jpg', 1, 0, '2025-11-13 19:06:29', '2025-11-13 19:06:29');
+INSERT INTO `products` (`id`, `brand`, `name`, `type`, `description`, `price`, `cost_price`, `stock_qty`, `image`, `is_active`, `is_featured`, `created_at`, `updated_at`) VALUES
+(1, 'Garnier', 'Fructis Goodbye Damage', 'conditioner', 'Erősítő balzsam a károsult hajra', '3490.00', '1500.00', 259, 'uploads/products/garnier fructis.jpg', 1, 1, '2025-11-13 19:06:29', '2026-01-28 19:19:07'),
+(2, 'Schwarzkopf', 'Deep Cleanse Shampoo', 'shampoo', 'Mélytisztító sampon zsíros fejbőrre.', '4190.00', '3000.00', 18, 'uploads/products/2.jpg', 1, 0, '2025-11-13 19:06:29', '2026-01-28 19:19:07'),
+(3, 'L\'Oréal', 'Color Protect Mask', 'mask', 'Színvédő hajpakolás festett hajra.', '5999.00', '2000.00', 19, 'uploads/products/loreal protect mask.jpg', 1, 1, '2025-11-13 19:06:29', '2026-01-28 19:19:07'),
+(4, 'Kérastase', 'Scalp Elixir Treatment', 'treatment', 'Fejbőrerősítő, kúrakezeléshez.', '8990.00', '6000.00', 21, 'uploads/products/4.jpg', 1, 0, '2025-11-13 19:06:29', '2026-01-28 19:19:20');
 
 -- --------------------------------------------------------
 
@@ -279,9 +358,50 @@ CREATE TABLE `services` (
 --
 
 INSERT INTO `services` (`id`, `name`, `duration_minutes`, `price`, `description`, `is_active`) VALUES
-(1, 'Női hajvágás', 45, '6900.00', 'Konzultáció + vágás + szárítás.', 1),
-(2, 'Férfi hajvágás', 30, '4900.00', 'Gyors vágás és formázás.', 1),
-(3, 'Fejbőrkezelés', 40, '8900.00', 'Kíméletes fejbőrápoló kúra.', 1);
+(1, 'Női hajvágás', 45, '6999.00', 'Konzultáció + vágás + szárítás.', 1),
+(2, 'Férfi hajvágás', 30, '4999.00', 'Gyors vágás és formázás.', 1),
+(4, 'Fejbőr kezelő kúra', 60, '7999.00', 'Fejbőr hidratáló és élénkítő kezelés', 1),
+(6, 'Szakáll vágás', 20, '3299.00', 'Szakáll vágás és formázás.', 1),
+(7, 'Gyermek hajvágás (fiú)', 30, '3799.00', 'Gyerek hajvágás 14 éven aluli fiúknak', 1),
+(8, 'Gyermek hajvágás (lány)', 45, '5199.00', 'Gyerek hajvágás 14 éven aluli lányoknak', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Tábla szerkezet ehhez a táblához `stock_movements`
+--
+
+CREATE TABLE `stock_movements` (
+  `id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `qty_change` int(11) NOT NULL,
+  `unit_cost` decimal(10,2) DEFAULT NULL,
+  `reason` enum('purchase','order','adjustment','return','correction') NOT NULL,
+  `ref_id` int(11) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
+
+--
+-- A tábla adatainak kiíratása `stock_movements`
+--
+
+INSERT INTO `stock_movements` (`id`, `product_id`, `qty_change`, `unit_cost`, `reason`, `ref_id`, `created_at`) VALUES
+(1, 1, 1, '0.00', 'purchase', NULL, '2026-01-28 18:51:46'),
+(2, 1, 200, '3000.00', 'purchase', NULL, '2026-01-28 18:52:19'),
+(3, 1, 10, '4000.00', 'purchase', NULL, '2026-01-28 18:52:28'),
+(4, 1, 50, '1500.00', 'purchase', NULL, '2026-01-28 18:52:58'),
+(5, 4, 21, '6000.00', 'purchase', NULL, '2026-01-28 18:53:19'),
+(6, 3, 20, '2000.00', 'purchase', NULL, '2026-01-28 18:53:59'),
+(7, 3, -2, NULL, 'order', 6, '2026-01-28 18:54:57'),
+(8, 3, 2, '0.00', 'purchase', NULL, '2026-01-28 19:08:01'),
+(9, 2, 18, '3000.00', 'purchase', NULL, '2026-01-28 19:08:32'),
+(10, 2, 3, '0.00', 'purchase', NULL, '2026-01-28 19:18:57'),
+(11, 3, 1, '0.00', 'purchase', NULL, '2026-01-28 19:19:00'),
+(12, 2, -3, NULL, 'order', 7, '2026-01-28 19:19:07'),
+(13, 3, -2, NULL, 'order', 7, '2026-01-28 19:19:07'),
+(14, 1, -2, NULL, 'order', 7, '2026-01-28 19:19:07'),
+(15, 4, -4, NULL, 'order', 7, '2026-01-28 19:19:07'),
+(16, 4, 4, '0.00', 'purchase', NULL, '2026-01-28 19:19:20');
 
 -- --------------------------------------------------------
 
@@ -364,7 +484,9 @@ ALTER TABLE `products`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_products_brand` (`brand`),
   ADD KEY `idx_products_type` (`type`),
-  ADD KEY `idx_products_name` (`name`);
+  ADD KEY `idx_products_name` (`name`),
+  ADD KEY `idx_products_stock` (`stock_qty`),
+  ADD KEY `idx_products_prices` (`price`,`cost_price`);
 
 --
 -- A tábla indexei `product_images`
@@ -403,6 +525,14 @@ ALTER TABLE `services`
   ADD PRIMARY KEY (`id`);
 
 --
+-- A tábla indexei `stock_movements`
+--
+ALTER TABLE `stock_movements`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_sm_prod` (`product_id`),
+  ADD KEY `idx_sm_reason` (`reason`,`ref_id`);
+
+--
 -- A tábla indexei `users`
 --
 ALTER TABLE `users`
@@ -418,7 +548,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT a táblához `audit_log`
 --
 ALTER TABLE `audit_log`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT a táblához `banners`
@@ -436,19 +566,19 @@ ALTER TABLE `bookings`
 -- AUTO_INCREMENT a táblához `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT a táblához `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT a táblához `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT a táblához `product_images`
@@ -478,7 +608,13 @@ ALTER TABLE `public_profile_recos`
 -- AUTO_INCREMENT a táblához `services`
 --
 ALTER TABLE `services`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT a táblához `stock_movements`
+--
+ALTER TABLE `stock_movements`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT a táblához `users`
@@ -534,6 +670,12 @@ ALTER TABLE `public_profile_photos`
 ALTER TABLE `public_profile_recos`
   ADD CONSTRAINT `fk_ppr_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_ppr_profile` FOREIGN KEY (`profile_id`) REFERENCES `public_profiles` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Megkötések a táblához `stock_movements`
+--
+ALTER TABLE `stock_movements`
+  ADD CONSTRAINT `fk_sm_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
