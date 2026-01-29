@@ -1,12 +1,11 @@
 <?php
-// /admin/index.php – Hair Heaven admin panel
 session_start();
 require_once __DIR__ . '/../biztonsag.php';
 require_once __DIR__ . '/../connect.php';
 
 $mysqli = db();
 
-// ---- Jogosultság (csak owner) ----
+//Jogosultság
 if (empty($_SESSION['belepve']) || ($_SESSION['role'] ?? '') !== 'owner') {
   http_response_code(403);
   echo 'Hozzáférés megtagadva.'; exit;
@@ -14,7 +13,7 @@ if (empty($_SESSION['belepve']) || ($_SESSION['role'] ?? '') !== 'owner') {
 
 $userId = (int)($_SESSION['user_id'] ?? 0);
 
-// ---- Helper ----
+// Helper
 function e($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function abs_img(?string $p): string {
   $p = $p ?: '/assets/img/placeholder.png';
@@ -23,7 +22,7 @@ function abs_img(?string $p): string {
 function post($k,$d=''){ return isset($_POST[$k]) ? trim((string)$_POST[$k]) : $d; }
 function post_bool($k){ return isset($_POST[$k]) && ($_POST[$k]==='1' || $_POST[$k]==='on'); }
 
-// --- biztonságos feltöltés (termék kép)
+//biztonságos feltöltés (termék kép)
 function save_product_image(array $file): ?string {
   if (empty($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) return null;
   $allowed = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
@@ -38,7 +37,7 @@ function save_product_image(array $file): ?string {
   return '/uploads/products/'.$name;
 }
 
-// --- audit log
+//audit log
 function audit(mysqli $db, int $userId, string $action, string $entity, ?int $entityId){
   try{
     $sql = "INSERT INTO audit_log (user_id, action, entity, entity_id) VALUES (?,?,?,?)";
@@ -48,7 +47,7 @@ function audit(mysqli $db, int $userId, string $action, string $entity, ?int $en
   }catch(Throwable $e){}
 }
 
-// ---- Akciók (POST)
+//Akciók
 $flash = ['ok'=>null,'err'=>null];
 try {
   if ($_SERVER['REQUEST_METHOD'] === 'POST') csrf_validate();
@@ -58,7 +57,7 @@ try {
 
 if ($mysqli && $_SERVER['REQUEST_METHOD']==='POST' && !$flash['err']) {
   try {
-    // TERMÉK mentés
+    //TERMÉK mentés
     if (post('action') === 'product_save') {
       $id          = (int)post('id', 0);
       $brand       = post('brand');
@@ -100,7 +99,7 @@ if ($mysqli && $_SERVER['REQUEST_METHOD']==='POST' && !$flash['err']) {
       }
     }
 
-    // TERMÉK törlés
+    //TERMÉK törlés
     if (post('action') === 'product_delete') {
       $id = (int)post('id',0);
       if ($id>0) {
@@ -113,7 +112,7 @@ if ($mysqli && $_SERVER['REQUEST_METHOD']==='POST' && !$flash['err']) {
       }
     }
 
-    // SZOLGÁLTATÁS mentés
+    //SZOLGÁLTATÁS mentés
     if (post('action') === 'service_save') {
       $id       = (int)post('id',0);
       $name     = post('name');
@@ -141,7 +140,7 @@ if ($mysqli && $_SERVER['REQUEST_METHOD']==='POST' && !$flash['err']) {
       }
     }
 
-    // SZOLGÁLTATÁS törlés
+    //SZOLGÁLTATÁS törlés
     if (post('action') === 'service_delete') {
       $id = (int)post('id',0);
       if ($id>0) {
@@ -156,7 +155,7 @@ if ($mysqli && $_SERVER['REQUEST_METHOD']==='POST' && !$flash['err']) {
   }
 }
 
-// ---- Listák ----
+//Listák
 $products = [];
 $services = [];
 if ($mysqli) {
@@ -169,7 +168,7 @@ if ($mysqli) {
   while ($row = $r->fetch_assoc()) $services[] = $row;
 }
 
-// Enum opciók
+//Enum opciók
 $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatment'=>'Kezelés','styling'=>'Styling','other'=>'Egyéb'];
 ?>
 <!doctype html>
@@ -235,7 +234,6 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
 <body>
 
 <?php $activePage = ''; include __DIR__ . '/../navbar.php'; ?>
-
 <div class="container-xxl py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3">Admin felület</h1>
@@ -320,7 +318,7 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
           </div>
         </div>
 
-        <!-- JOBB – űrlap + előnézet (5/12), belül 6/6 hogy a kép szélesebb lehessen -->
+        <!--jobb lap(5/12) -->
         <div class="col-xxl-5 col-lg-5">
           <div class="card p-3">
             <h5 class="mb-3" id="pfTitle">Új termék</h5>

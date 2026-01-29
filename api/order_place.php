@@ -1,15 +1,14 @@
 <?php
-// /api/order_place.php – rendelés mentése a DB-be a session kosárból
+
 session_start();
 require_once __DIR__ . '/../biztonsag.php';
 require_once __DIR__ . '/../connect.php';
 
-// CSRF
 try { csrf_validate(); } catch (Throwable $e) {
   http_response_code(400); exit('Érvénytelen CSRF token');
 }
 
-// Auth
+
 if (empty($_SESSION['belepve']) || empty($_SESSION['user_id'])) {
   header('Location: /belepes.php'); exit;
 }
@@ -29,7 +28,7 @@ if (!$mysqli) {
 
 $userId = (int)$_SESSION['user_id'];
 
-// 0) Felhasználó adatai + kötelező cím ellenőrzése
+// Felhasználó adatai + kötelező cím ellenőrzése
 $stmt = $mysqli->prepare("SELECT username, email, address FROM users WHERE id=? LIMIT 1");
 $stmt->bind_param('i', $userId);
 $stmt->execute();
@@ -45,13 +44,13 @@ $username = (string)($u['username'] ?? '');
 $email    = (string)($u['email'] ?? '');
 $address  = trim((string)($u['address'] ?? ''));
 
-// Kötelező cím – min. 10 karakter
+// cím  min. 10 karakter
 if (mb_strlen($address) < 10) {
   $_SESSION['flash_error'] = 'Rendelés leadásához előbb add meg a szállítási címed (min. 10 karakter) a Profilom oldalon.';
   header('Location: /profil.php'); exit;
 }
 
-// 1) Termékek behúzása, összegzés
+// Termékek behúzása, összegzés
 $ids = array_keys($cart);
 if (empty($ids)) {
   $_SESSION['flash_error'] = 'A kosár üres, nincs mit leadni.';

@@ -1,7 +1,7 @@
 <?php
-// api/cart_update.php – mennyiség módosítása (csak bejelentkezve)
-require_once __DIR__ . '/../biztonsag.php';
 session_start();
+require_once __DIR__ . '/../biztonsag.php';
+
 
 function back_to_cart(){
   header('Location: /kosar.php');

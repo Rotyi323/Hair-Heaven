@@ -1,10 +1,9 @@
 <?php
-// Hair Heaven – Rendeléseim
 session_start();
 require_once __DIR__ . '/biztonsag.php';
 require_once __DIR__ . '/connect.php';
 
-$mysqli = db(); // mysqli|null
+$mysqli = db(); 
 
 // Csak bejelentkezve
 if (empty($_SESSION['belepve']) || empty($_SESSION['user_id'])) {
@@ -15,7 +14,7 @@ $userId = (int)$_SESSION['user_id'];
 
 function e($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
-// --- Rendelések lehúzása (orders) ---
+//Rendelések lehúzása (orders)
 $orders = [];
 if ($mysqli) {
   // 1) fej adatok
@@ -115,7 +114,7 @@ if ($mysqli) {
           <tbody>
           <?php foreach ($orders as $o): ?>
             <?php
-              // Rövid összefoglaló a tételekből: "Név × db, Név × db, ..."
+              // Rövid összefoglaló a tételekből
               $summary = '—';
               if (!empty($o['items'])) {
                 $parts = [];
@@ -134,7 +133,7 @@ if ($mysqli) {
               $badgeClass = match ($status) {
                 'confirmed' => 'bg-success',
                 'cancelled' => 'bg-danger',
-                default     => 'bg-secondary' // 'new' vagy bármi más
+                default     => 'bg-secondary'
               };
             ?>
             <tr>

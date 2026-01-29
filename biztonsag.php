@@ -42,12 +42,11 @@ if (!function_exists('hh_to_utf8')) {
     $_POST = hh_to_utf8($_POST);
 }
 
-/* ===== HTML escape ===== */
 if (!function_exists('e')) {
     function e($str){ return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
 }
 
-/* ===== Fehérlistás beolvasók ===== */
+// Fehérlistás beolvasók
 if (!function_exists('get_str')) {
     // Szöveg: max hossz, opcionális regexp mintával (pl. csak betű/szám/space)
     function get_str($key, $default = '', $maxlen = 200, $pattern = null, $src = 'GET') {
@@ -97,7 +96,7 @@ if (!function_exists('get_enum')) {
     }
 }
 
-/* ===== get_param – biztonságos alap szövegbeolvasó ===== */
+//get_param – biztonságos alap szövegbeolvasó
 if (!function_exists('get_param')) {
     // Enged: betűk/számok/space/.-_+%()#@&!/:;'
     function get_param($key, $default = '', $src = 'GET'){
@@ -106,7 +105,7 @@ if (!function_exists('get_param')) {
     }
 }
 
-/* ===== CSRF token segédek ===== */
+// CSRF védelem
 if (!function_exists('csrf_token')) {
     function csrf_token() {
         if (session_status() !== PHP_SESSION_ACTIVE) @session_start();
@@ -126,7 +125,7 @@ if (!function_exists('csrf_token')) {
     }
 }
 
-/* ===== Egyszerű POST rate limit (DoS ellen alap) ===== */
+//Egyszerű POST rate limit (DoS ellen)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
     $fp = sys_get_temp_dir() . '/hh_rl_' . md5($ip);

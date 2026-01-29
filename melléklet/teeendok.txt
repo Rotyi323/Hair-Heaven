@@ -1,3 +1,3 @@
-több termék, nyílván tartás, a készlet módosítás, termék leírások
+több termék,termék leírások, foglalás lemondásnál ha lejárt módosítani a logikát
 
 több fodrászhoz bejelentkezés, kezelések haladásai képekkel, feljegyzések

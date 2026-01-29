@@ -1,5 +1,4 @@
 <?php
-// /navbar.php – Közös navigáció, CSS NÉLKÜL!
 $isLogged  = !empty($_SESSION['belepve']);
 $username  = $_SESSION['username'] ?? null;
 $navAvatar = ($_SESSION['avatar'] ?? '') ?: '/assets/img/avatar-placeholder.svg';

@@ -1,7 +1,6 @@
 <?php
-// Hair Heaven – Foglalásaim
-require_once __DIR__ . '/biztonsag.php';
 session_start();
+require_once __DIR__ . '/biztonsag.php';
 require_once __DIR__ . '/connect.php';
 
 $cspNonce = $GLOBALS['CSP_NONCE'] ?? '';
@@ -110,7 +109,7 @@ document.querySelectorAll('.cancel-form').forEach(form=>{
       const data = await res.json();
       if (data && data.ok) {
         tr?.parentNode?.removeChild(tr);
-        // jelezd a Szolgáltatások oldalnak, hogy frissítse a slotokat
+        // slot frissítés jelzés
         localStorage.setItem('hh_booking_changed', String(Date.now()));
       } else {
         alert(data?.msg || 'Váratlan hiba.');

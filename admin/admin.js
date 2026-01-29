@@ -1,9 +1,7 @@
-// Admin UI – inline JS nélkül (CSP-kompatibilis)
-
 (function () {
   const placeholderImg = '/assets/img/placeholder.png';
 
-  // --- Termék űrlap elemei
+  //Termék űrlap elemei
   const pfTitle = document.getElementById('pfTitle');
   const pId     = document.getElementById('p_id');
   const pBrand  = document.getElementById('p_brand');
@@ -17,7 +15,7 @@
   const pPrev   = document.getElementById('p_preview');
   const btnResetProduct = document.getElementById('btnResetProduct');
 
-  // --- Szolgáltatás űrlap elemei
+  //Szolgáltatás űrlap elemei
   const sfTitle = document.getElementById('sfTitle');
   const sId     = document.getElementById('s_id');
   const sName   = document.getElementById('s_name');
@@ -27,9 +25,9 @@
   const sActive = document.getElementById('s_active');
   const btnResetService = document.getElementById('btnResetService');
 
-  // --- Lista eseménykezelők (edit/delete)
+  //Lista eseménykezelők 
 
-  // Termék szerkesztés gombok
+  //Termék szerkesztés gombok
   document.getElementById('prodTable')?.addEventListener('click', (ev) => {
     const btn = ev.target.closest('.js-edit-product');
     if (!btn) return;
@@ -53,20 +51,20 @@
     }
   });
 
-  // Termék törlés megerősítés
+  //Termék törlés megerősítés
   document.getElementById('prodTable')?.addEventListener('submit', (ev) => {
     if (ev.target.matches('.js-del-product')) {
       if (!confirm('Biztosan törlöd?')) ev.preventDefault();
     }
   });
 
-  // Termék előnézet file-ból
+  //Termék előnézet file-ból
   pImage?.addEventListener('change', (ev) => {
     const f = ev.target.files && ev.target.files[0];
     pPrev.src = f ? URL.createObjectURL(f) : placeholderImg;
   });
 
-  // Termék űrlap reset
+  //Termék űrlap reset
   btnResetProduct?.addEventListener('click', () => {
     pfTitle.textContent = 'Új termék';
     pId.value=''; pBrand.value=''; pName.value='';
@@ -75,7 +73,7 @@
     pImage.value=''; pPrev.src = placeholderImg;
   });
 
-  // Szolgáltatás szerkesztés gombok
+  //Szolgáltatás szerkesztés gombok
   document.getElementById('srvTable')?.addEventListener('click', (ev) => {
     const btn = ev.target.closest('.js-edit-service');
     if (!btn) return;
@@ -95,14 +93,14 @@
     }
   });
 
-  // Szolgáltatás törlés megerősítés
+  //Szolgáltatás törlés megerősítés
   document.getElementById('srvTable')?.addEventListener('submit', (ev) => {
     if (ev.target.matches('.js-del-service')) {
       if (!confirm('Biztosan törlöd?')) ev.preventDefault();
     }
   });
 
-  // Szolgáltatás űrlap reset
+  //Szolgáltatás űrlap reset
   btnResetService?.addEventListener('click', () => {
     sfTitle.textContent = 'Új szolgáltatás';
     sId.value=''; sName.value=''; sMin.value=''; sPrice.value='';

@@ -1,20 +1,19 @@
 <?php
-// Hair Heaven – Profilom
-require_once __DIR__ . '/biztonsag.php';
 session_start();
+require_once __DIR__ . '/biztonsag.php';
 require_once __DIR__ . '/connect.php';
 
 $cspNonce = $GLOBALS['CSP_NONCE'] ?? '';
 $mysqli   = db();
 
-// --- csak bejelentkezve ---
+//csak bejelentkezve
 if (empty($_SESSION['belepve']) || empty($_SESSION['user_id'])) {
   header('Location: /belepes.php');
   exit;
 }
 $userId = (int)$_SESSION['user_id'];
 
-// --- akt. user betöltése ---
+//user betöltése
 $user = null;
 if ($mysqli) {
   $stmt = $mysqli->prepare("SELECT id, username, email, avatar, address FROM users WHERE id = ? LIMIT 1");
@@ -29,10 +28,10 @@ if (!$user) { http_response_code(404); exit('Felhasználó nem található.'); }
 // későbbi törléshez megőrizzük a jelenlegi avatar elérési útját
 $oldAvatar = $user['avatar'] ?? null;
 
-// --- üzenetek ---
+//üzenetek
 $okMsg = $errMsg = '';
 
-// --- POST feldolgozás (mentés) ---
+// POST feldolgozás (mentés)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   csrf_validate();
 
@@ -46,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 
   // 1) opcionális avatar feltöltés
-  $newAvatarPath = null; // relatív web útvonal
+  $newAvatarPath = null;
   if ($errMsg === '' && !empty($_FILES['avatar']['name']) && is_uploaded_file($_FILES['avatar']['tmp_name'])) {
     $f = $_FILES['avatar'];
 

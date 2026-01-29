@@ -1,11 +1,11 @@
 :root{
-  --hh-primary:#c76df0;            /* lila */
+  --hh-primary:#c76df0;          
   --hh-primary-weak: rgba(199,109,240,.08);
   --hh-primary-glow: rgba(199,109,240,.22);
   --hh-dark:#1c1a27;
   --hh-muted:#6c6a75;
 
-  /* NAV méretezés */
+
   --hh-nav-height: 60px;
   --hh-nav-font:   1.10rem;
   --hh-nav-brand:  1.95rem;
@@ -22,9 +22,7 @@
   }
 }
 
-/* =========================
-   GOMBOK – egységes stílus
-   ========================= */
+/* GOMBOK */
 .btn{
   border-radius:10px;
   transition:color .15s ease, background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .05s ease;
@@ -52,27 +50,24 @@
 .btn-dark:hover,.btn-dark:focus{ background:#25242c; border-color:#25242c; box-shadow:0 4px 14px rgba(37,36,44,.25); }
 .btn i{ margin-right:.35rem; }
 
-/* =========================
-   NAVBAR – elosztás / tipó
-   ========================= */
+/*
+   NAVBAR elosztás */
 .navbar{
   background:#fff; box-shadow:0 6px 20px rgba(0,0,0,.06);
   min-height:var(--hh-nav-height);
 }
 
-/* a container igazából flex: helyes elosztáshoz kap egy kis gap-et */
 .navbar .container{
   display:flex; align-items:center; gap:.75rem;
 }
 
-/* a collapse 100% szélességet kap, a két UL-t széthúzzuk */
 #hhNav{
   display:flex; align-items:center; justify-content:space-between; width:100%;
 }
 
-/* BAL oldali főmenü – több hely, kényelmes távolságok */
+/* BAL oldali főmenü  */
 #hhNav .navbar-nav.me-auto{
-  flex:1 1 auto;                      /* ez engedi, hogy a menü kitöltse a középső sávot */
+  flex:1 1 auto;                     
   justify-content:flex-start;
   gap:.25rem;
 }
@@ -80,7 +75,7 @@
   #hhNav .navbar-nav.me-auto{ gap:1.25rem; }
 }
 
-/* JOBB oldali blokk (Kosár + Profil) – tiszta ritmus */
+/* JOBB oldali blokk (Kosár + Profil)*/
 #hhNav .navbar-nav.ms-auto{
   flex:0 0 auto; display:flex; align-items:center; gap:.75rem;
 }

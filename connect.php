@@ -1,5 +1,4 @@
 <?php
-
 $DB_HOST = 'localhost';
 $DB_USER = 'root';
 $DB_PASS = '';
@@ -17,9 +16,7 @@ function db(): ?mysqli {
     return $conn;
   }
 
-
   mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-
 
   $DB_HOST = $GLOBALS['DB_HOST'] ?? 'localhost';
   $DB_USER = $GLOBALS['DB_USER'] ?? 'root';
@@ -39,7 +36,6 @@ function db(): ?mysqli {
     return null;
   }
 }
-
 
 function db_close(): void {
   $c = db();

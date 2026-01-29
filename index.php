@@ -19,7 +19,7 @@ function fetch_all_assoc(?mysqli $mysqli, string $sql): array {
   }
 }
 
-// ---- Bannerek
+//Banner
 $banners = fetch_all_assoc($mysqli, "
   SELECT id, title, image_path, link_url
   FROM banners
@@ -57,13 +57,13 @@ if (!empty($banners)) {
       'title' => 'Top ajánlatok & kedvencek – fedezd fel!',
       'href1' => '/aruhaz.php',
       'text1' => 'Felfedezem',
-      'href2' => '/aruhaz.php', // NINCS többé elégedett vásárlók oldal
+      'href2' => '/aruhaz.php', 
       'text2' => 'Áruház',
     ],
   ];
 }
 
-// ---- Kiemelt termékek
+//Kiemelt termékek
 $featured = fetch_all_assoc($mysqli, "
   SELECT id, brand, name, price, image
   FROM products
@@ -80,7 +80,7 @@ if (empty($featured)) {
   ];
 }
 
-// ---- Szolgáltatások
+//Szolgáltatások
 $services = fetch_all_assoc($mysqli, "
   SELECT id, name, duration_minutes, price, description
   FROM services
@@ -96,7 +96,7 @@ if (empty($services)) {
   ];
 }
 
-// ---- Vevői profil képek + komment (CSAK DÍSZ, nincs CTA)
+//Vevő profil képek + komment
 $profiles = fetch_all_assoc($mysqli, "
   SELECT id, display_name, avatar, bio, favorite_brand
   FROM public_profiles

@@ -120,7 +120,6 @@ $types=['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatment'
     <h1 class="h3 mb-0">Admin felület</h1>
   </div>
 
-  <!-- Ugyanaz a fülsáv, de valódi linkekre mutat -->
   <ul class="nav admin-tabs" role="tablist">
     <li class="nav-item">
       <a class="nav-link" href="/admin/index.php#tabProducts" role="tab">Termékek</a>
@@ -136,7 +135,6 @@ $types=['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatment'
   <?php if ($flash['ok']): ?><div class="alert alert-success"><?= e($flash['ok']) ?></div><?php endif; ?>
   <?php if ($flash['err']): ?><div class="alert alert-danger"><?= e($flash['err']) ?></div><?php endif; ?>
 
-  <!-- Magyarázó sáv -->
   <div class="helpbar p-3 mb-3">
     <strong>Beszerzés kitöltése:</strong>
     <ol class="mb-0 mt-2">
@@ -182,7 +180,6 @@ $types=['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatment'
               <small class="text-muted">(<?= number_format($ppct,1,',',' ') ?>%)</small>
             </td>
             <td class="text-end">
-              <!-- ① mennyiség, ② egységár -->
               <form method="post" class="d-inline-flex align-items-center gap-1">
                 <?= csrf_field() ?>
                 <input type="hidden" name="product_id" value="<?= (int)$r['id'] ?>">

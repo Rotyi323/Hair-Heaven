@@ -17,10 +17,10 @@ if (!$mysqli) { echo json_encode(['ok'=>false,'msg'=>'DB hiba']); exit; }
 
 $userId    = (int)$_SESSION['user_id'];
 $serviceId = (int)($_POST['service_id'] ?? 0);
-$date      = trim((string)($_POST['date'] ?? '')); // pl. 2026-01-05
-$time      = trim((string)($_POST['time'] ?? '')); // pl. 08:15
+$date      = trim((string)($_POST['date'] ?? '')); 
+$time      = trim((string)($_POST['time'] ?? '')); 
 
-// alapszabály: H–P 08:00–16:00, 15 perces raster
+//  H–P 08:00–16:00, 15 percenként
 try {
   $dt = new DateTime("$date $time:00");
 } catch(Throwable $e){
@@ -38,7 +38,7 @@ $slot = $dt->format('Y-m-d H:i:00');
 
 $mysqli->begin_transaction();
 try {
-  // ZÁR: az adott szolgáltatás+időpont ellenőrzése aktív státuszokra
+  //szolgáltatás+időpont ellenőrzése aktív státuszokra
   $stmt = $mysqli->prepare("
     SELECT id FROM bookings
     WHERE service_id=? AND appointment_datetime=? AND status IN ('pending','confirmed')
