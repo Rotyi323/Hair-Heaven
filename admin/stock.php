@@ -16,7 +16,8 @@ function num($s){ return (float)str_replace([',',' '], ['.',''], $s); }
 function audit(mysqli $db, int $userId, string $action, string $entity, ?int $entityId){
   try{
     $st=$db->prepare("INSERT INTO audit_log (user_id, action, entity, entity_id) VALUES (?,?,?,?)");
-    $st->bind_param('issi',$userId,$action,$entity,$entityId); $st->execute();
+    $st->bind_param('issi',$userId,$action,$entity,$entityId);
+    $st->execute();
   }catch(Throwable $e){}
 }
 
@@ -30,29 +31,27 @@ if($mysqli && $_SERVER['REQUEST_METHOD']==='POST' && !$flash['err']){
     $unit = num(post('unit_cost','0'));
     if($pid<=0) throw new RuntimeException('Hibás termékazonosító.');
     if($qty<=0) throw new RuntimeException('A rendelt mennyiség legyen pozitív.');
-    // eladási ár ellenőrzéshez
+
     $pr = $mysqli->query("SELECT price FROM products WHERE id={$pid} LIMIT 1")->fetch_assoc();
     if(!$pr) throw new RuntimeException('Termék nem található.');
     $sell = (float)$pr['price'];
+
     if($unit>0 && $unit>$sell){
       throw new RuntimeException('Az egységár nem lehet magasabb az eladási árnál.');
     }
 
     $mysqli->begin_transaction();
 
-    // készlet növelése
     $st=$mysqli->prepare("UPDATE products SET stock_qty = stock_qty + ? WHERE id=?");
     $st->bind_param('ii',$qty,$pid); $st->execute();
 
-    // egységár megadása esetén frissítjük a beszerzési árat
     if($unit>0){
       $st=$mysqli->prepare("UPDATE products SET cost_price=? WHERE id=?");
       $st->bind_param('di',$unit,$pid); $st->execute();
     }
 
-    // mozgásnapló
     $st=$mysqli->prepare("INSERT INTO stock_movements (product_id, qty_change, unit_cost, reason) VALUES (?,?,?,'purchase')");
-    $plus=$qty; $st->bind_param('iid',$pid,$plus,$unit); $st->execute();
+    $plus=+$qty; $st->bind_param('iid',$pid,$plus,$unit); $st->execute();
 
     audit($mysqli,$userId,'purchase','products',$pid);
     $mysqli->commit();
@@ -63,7 +62,6 @@ if($mysqli && $_SERVER['REQUEST_METHOD']==='POST' && !$flash['err']){
   }
 }
 
-// LISTÁZÁS
 $rows=[];
 if($mysqli){
   $q="SELECT id, brand, name, type, price, cost_price, stock_qty, image FROM products ORDER BY brand, name";
@@ -86,7 +84,6 @@ $types=['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatment'
 <link rel="stylesheet" href="/assets/hairheaven.css">
 <style>
   body{ background:#faf7ff; }
-  .container-xxl{ max-width:1700px; }
   .card{ box-shadow:0 10px 30px rgba(0,0,0,.06); border:0; border-radius:16px; }
   .thumb{ width:72px;height:72px;object-fit:cover;border-radius:10px;border:1px solid #eee;background:#fff; }
   .table thead th{ white-space:nowrap; }
@@ -98,11 +95,15 @@ $types=['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatment'
   .profit-neg{ color:#b20b0b; font-weight:700; }
   .helpbar{ border-radius:12px; background:#fff; box-shadow:0 6px 18px rgba(0,0,0,.05); }
 
-  /* Admin lapfülek – ugyanaz a stílus, mint az indexen */
-  .admin-tabs{ border-bottom:2px solid #efe9ff; margin-bottom: .5rem; }
+  .admin-tabs{ border-bottom:2px solid #efe9ff; }
   .admin-tabs .nav-link{
-    border:0; color:#6c6a75; font-weight:800;
-    padding:.7rem 1.1rem; border-radius:12px 12px 0 0;
+    border:0;
+    color:#6c6a75;
+    font-weight:800;
+    padding:.7rem 1.1rem;
+    border-radius:12px 12px 0 0;
+    background:transparent;
+    transition:.18s ease;
   }
   .admin-tabs .nav-link:hover{ color:#7e3dbf; }
   .admin-tabs .nav-link.active{
@@ -116,19 +117,22 @@ $types=['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatment'
 <?php $activePage='admin'; include __DIR__ . '/../navbar.php'; ?>
 
 <div class="container-xxl py-4">
-  <div class="d-flex align-items-center justify-content-between mb-2">
-    <h1 class="h3 mb-0">Admin felület</h1>
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h3 mb-0">Készletnyilvántartás</h1>
   </div>
 
-  <ul class="nav admin-tabs" role="tablist">
-    <li class="nav-item">
-      <a class="nav-link" href="/admin/index.php#tabProducts" role="tab">Termékek</a>
+  <ul class="nav admin-tabs mb-3" role="tablist">
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="/admin/index.php">Termékek</a>
     </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/admin/index.php#tabServices" role="tab">Szolgáltatások</a>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="/admin/index.php#tabServices">Szolgáltatások</a>
     </li>
-    <li class="nav-item">
-      <a class="nav-link active" href="/admin/stock.php" role="tab" aria-current="page">Készlet</a>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link active" href="/admin/stock.php">Készlet</a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="/admin/kezelesek.php">Kezelések</a>
     </li>
   </ul>
 
@@ -183,7 +187,7 @@ $types=['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatment'
               <form method="post" class="d-inline-flex align-items-center gap-1">
                 <?= csrf_field() ?>
                 <input type="hidden" name="product_id" value="<?= (int)$r['id'] ?>">
-                <input type="number" class="form-control form-control-sm" name="qty" min="1" required placeholder="+db" style="width:86px">
+                <input type="number" class="form-control form-control-sm" name="qty" min="1" required placeholder="db" style="width:86px">
                 <input type="number" class="form-control form-control-sm" name="unit_cost" min="0" step="1" placeholder="Ft/db" style="width:100px">
                 <button class="btn btn-sm btn-cta text-white" name="action" value="purchase" title="Beszerzés">
                   <i class="fa-solid fa-circle-plus me-1"></i> Beszerzés

@@ -5,7 +5,7 @@ require_once __DIR__ . '/../connect.php';
 
 $mysqli = db();
 
-//Jogosultság
+// Jogosultság
 if (empty($_SESSION['belepve']) || ($_SESSION['role'] ?? '') !== 'owner') {
   http_response_code(403);
   echo 'Hozzáférés megtagadva.'; exit;
@@ -22,7 +22,7 @@ function abs_img(?string $p): string {
 function post($k,$d=''){ return isset($_POST[$k]) ? trim((string)$_POST[$k]) : $d; }
 function post_bool($k){ return isset($_POST[$k]) && ($_POST[$k]==='1' || $_POST[$k]==='on'); }
 
-//biztonságos feltöltés (termék kép)
+// biztonságos feltöltés (termék kép)
 function save_product_image(array $file): ?string {
   if (empty($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) return null;
   $allowed = ['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];
@@ -37,7 +37,7 @@ function save_product_image(array $file): ?string {
   return '/uploads/products/'.$name;
 }
 
-//audit log
+// audit log
 function audit(mysqli $db, int $userId, string $action, string $entity, ?int $entityId){
   try{
     $sql = "INSERT INTO audit_log (user_id, action, entity, entity_id) VALUES (?,?,?,?)";
@@ -47,7 +47,7 @@ function audit(mysqli $db, int $userId, string $action, string $entity, ?int $en
   }catch(Throwable $e){}
 }
 
-//Akciók
+// Akciók
 $flash = ['ok'=>null,'err'=>null];
 try {
   if ($_SERVER['REQUEST_METHOD'] === 'POST') csrf_validate();
@@ -57,7 +57,7 @@ try {
 
 if ($mysqli && $_SERVER['REQUEST_METHOD']==='POST' && !$flash['err']) {
   try {
-    //TERMÉK mentés
+    // TERMÉK mentés
     if (post('action') === 'product_save') {
       $id          = (int)post('id', 0);
       $brand       = post('brand');
@@ -99,7 +99,7 @@ if ($mysqli && $_SERVER['REQUEST_METHOD']==='POST' && !$flash['err']) {
       }
     }
 
-    //TERMÉK törlés
+    // TERMÉK törlés
     if (post('action') === 'product_delete') {
       $id = (int)post('id',0);
       if ($id>0) {
@@ -112,7 +112,7 @@ if ($mysqli && $_SERVER['REQUEST_METHOD']==='POST' && !$flash['err']) {
       }
     }
 
-    //SZOLGÁLTATÁS mentés
+    // SZOLGÁLTATÁS mentés
     if (post('action') === 'service_save') {
       $id       = (int)post('id',0);
       $name     = post('name');
@@ -140,7 +140,7 @@ if ($mysqli && $_SERVER['REQUEST_METHOD']==='POST' && !$flash['err']) {
       }
     }
 
-    //SZOLGÁLTATÁS törlés
+    // SZOLGÁLTATÁS törlés
     if (post('action') === 'service_delete') {
       $id = (int)post('id',0);
       if ($id>0) {
@@ -155,7 +155,7 @@ if ($mysqli && $_SERVER['REQUEST_METHOD']==='POST' && !$flash['err']) {
   }
 }
 
-//Listák
+// Listák
 $products = [];
 $services = [];
 if ($mysqli) {
@@ -168,7 +168,7 @@ if ($mysqli) {
   while ($row = $r->fetch_assoc()) $services[] = $row;
 }
 
-//Enum opciók
+// Enum opciók
 $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatment'=>'Kezelés','styling'=>'Styling','other'=>'Egyéb'];
 ?>
 <!doctype html>
@@ -186,25 +186,17 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
     --card-radius:16px;
   }
   body{ background:var(--hh-bg); font-size:1.06rem; color:var(--hh-dark); }
-
-
   .container-xxl{ max-width:1700px; }
-
   .card{ box-shadow:0 10px 30px rgba(0,0,0,.06); border:0; border-radius:var(--card-radius); }
   .card h5{ font-weight:800; }
   .table td,.table th{ vertical-align:middle; }
   .badge-on{ background:#d9f7da; color:#0a7a18; }
   .badge-off{ background:#ffeaea; color:#b20b0b; }
   .thumb{ width:100px; height:100px; object-fit:cover; border-radius:12px; border:1.6px solid #000000; background:#fff; }
-
-
   #prodTable th:nth-child(4), #prodTable td:nth-child(4){ min-width:120px; }
   #prodTable th:nth-child(5), #prodTable td:nth-child(5){ min-width:120px; }
-
-  
   .img-preview{ width:100%; max-width:370px; height:370px; object-fit:cover; border-radius:16px; border:1px solid #eee; background:#fff; }
 
-  /* switch*/
   .switch-wrap .form-check-input{
     width:3.2rem; height:1.7rem; cursor:pointer;
     background-color:#ece7ff; border-color:#ded4ff;
@@ -217,11 +209,15 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
   .switch-row + .switch-row{ margin-top:.35rem; }
   .switch-row label{ margin:0 0 0 .25rem; font-weight:600; min-width:72px; }
 
-  /* TAB */
   .admin-tabs{ border-bottom:2px solid #efe9ff; }
   .admin-tabs .nav-link{
-    border:0; color:var(--hh-muted); font-weight:800;
-    padding:.7rem 1.1rem; border-radius:12px 12px 0 0;
+    border:0;
+    color:var(--hh-muted);
+    font-weight:800;
+    padding:.7rem 1.1rem;
+    border-radius:12px 12px 0 0;
+    background:transparent;
+    transition:.18s ease;
   }
   .admin-tabs .nav-link:hover{ color:#7e3dbf; }
   .admin-tabs .nav-link.active{
@@ -242,29 +238,26 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
   <?php if ($flash['ok']): ?><div class="alert alert-success"><?= e($flash['ok']) ?></div><?php endif; ?>
   <?php if ($flash['err']): ?><div class="alert alert-danger"><?= e($flash['err']) ?></div><?php endif; ?>
 
-<!-- Lilás tab gombok -->
-<ul class="nav admin-tabs" id="admTabs" role="tablist">
-  <li class="nav-item" role="presentation">
-    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabProducts" type="button" role="tab">Termékek</button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabServices" type="button" role="tab">Szolgáltatások</button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <a class="nav-link" href="/admin/stock.php" role="tab">
-      Készlet
-    </a>
-  </li>
-</ul>
-
+  <ul class="nav admin-tabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabProducts" type="button" role="tab">Termékek</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabServices" type="button" role="tab">Szolgáltatások</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="/admin/stock.php">Készlet</a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="/admin/kezelesek.php">Kezelések</a>
+    </li>
+  </ul>
 
   <div class="tab-content mt-3">
 
-    <!-- TERMÉKEK -->
     <div class="tab-pane fade show active" id="tabProducts" role="tabpanel">
       <div class="row g-3">
 
-        <!-- BAL  táblázat (7/12) -->
         <div class="col-xxl-7 col-lg-7">
           <div class="card p-3">
             <h5 class="mb-3">Terméklista</h5>
@@ -318,7 +311,6 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
           </div>
         </div>
 
-        <!--jobb lap(5/12) -->
         <div class="col-xxl-5 col-lg-5">
           <div class="card p-3">
             <h5 class="mb-3" id="pfTitle">Új termék</h5>
@@ -389,7 +381,6 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
       </div>
     </div>
 
-    <!-- SZOLGÁLTATÁSOK -->
     <div class="tab-pane fade" id="tabServices" role="tabpanel">
       <div class="row g-3">
         <div class="col-xxl-7 col-lg-7">
@@ -475,6 +466,7 @@ $types = ['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatmen
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
