@@ -1,3 +1,7 @@
-több termék,termék leírások, foglalás lemondásnál ha lejárt módosítani a logikát
+több termék, foglalás lemondásnál ha lejárt módosítani a logikát
 
 több fodrászhoz bejelentkezés, kezelések haladásai képekkel, feljegyzések
+
+felhasználó kezelések, saját, admin, leírás, kép
+
+jmeter tool

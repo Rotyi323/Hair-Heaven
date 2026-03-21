@@ -139,5 +139,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $n++;
     file_put_contents($fp, $n.'|'.$now);
-    if ($n > 30) { http_response_code(429); exit('Túl sok kérés.'); }
+    if ($n > 50) { http_response_code(429); exit('Túl sok kérés.'); }
 }

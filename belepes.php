@@ -27,7 +27,7 @@ if ($use_local_csrf) {
 // Rate limit: 5 próbálkozás / 15 perc 
 $rl_key = '_login_attempts';
 $rl_window = 15 * 60; // sec
-$rl_limit = 5;
+$rl_limit = 20;
 
 if (!isset($_SESSION[$rl_key])) {
   $_SESSION[$rl_key] = ['count' => 0, 'start' => time()];
