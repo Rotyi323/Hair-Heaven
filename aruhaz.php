@@ -86,7 +86,7 @@ if ($mysqli) {
   $where = ["is_active=1"];
   $params = [];
   $typesBind = '';
-
+//részleges egyezés
   if ($q !== '') {
     $where[] = "(name LIKE CONCAT('%', ?, '%') OR description LIKE CONCAT('%', ?, '%') OR brand LIKE CONCAT('%', ?, '%'))";
     $params[] = $q;
@@ -94,6 +94,7 @@ if ($mysqli) {
     $params[] = $q;
     $typesBind .= 'sss';
   }
+  //pontos egyezés
   if ($brand !== '') {
     $where[] = "brand = ?";
     $params[] = $brand;
@@ -142,7 +143,7 @@ if ($mysqli) {
     $items[] = $row;
 
 } else {
-  // Dummy
+  // Backup adatbázis hiba esetén – statikus lista DUMMY
   $all = [
     ['id' => 1, 'brand' => 'Garnier', 'name' => 'Vitamin+ Repair Conditioner', 'type' => 'conditioner', 'price' => 3490.00, 'image' => 'uploads/products/1.jpg'],
     ['id' => 2, 'brand' => 'Schwarzkopf', 'name' => 'Deep Cleanse Shampoo', 'type' => 'shampoo', 'price' => 4190.00, 'image' => 'uploads/products/2.jpg'],
@@ -692,4 +693,5 @@ function qs_without_page()
     })();
   </script>
 </body>
+
 </html>

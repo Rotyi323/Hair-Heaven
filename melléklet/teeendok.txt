@@ -1,4 +1,4 @@
 több termék, termék képek, foglalás lemondásnál ha lejárt módosítani a logikát
-
+adatbázis leírás tábla leirás módosítása
 több fodrászhoz bejelentkezés
 jmeter tool
