@@ -1,10 +1,10 @@
 <?php
 session_start();
-require_once __DIR__ . '/../biztonsag.php';
+require_once __DIR__ . '/../security.php';
 
 
 function back_to_cart(){
-  header('Location: /kosar.php');
+  header('Location: /cart.php');
   exit;
 }
 
@@ -16,7 +16,7 @@ try { csrf_validate(); } catch (Throwable $e) {
 
 if (empty($_SESSION['belepve']) || empty($_SESSION['user_id'])) {
   $_SESSION['flash_error'] = 'A kosár használatához jelentkezz be.';
-  header('Location: /belepes.php?next=/kosar.php'); exit;
+  header('Location: /login.php?next=/cart.php'); exit;
 }
 
 $pid = (int)($_POST['product_id'] ?? 0);
@@ -30,3 +30,4 @@ else { $_SESSION['cart'][$pid] = max(1, min(99, $qty)); }
 
 $_SESSION['flash_ok'] = 'Kosár frissítve.';
 back_to_cart();
+

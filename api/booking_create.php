@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__.'/../biztonsag.php';
+require_once __DIR__.'/../security.php';
 session_start();
 require_once __DIR__.'/../connect.php';
 
@@ -26,6 +26,18 @@ try {
 } catch(Throwable $e){
   echo json_encode(['ok'=>false,'msg'=>'Érvénytelen dátum/idő']); exit;
 }
+
+$now = new DateTime();
+if ($dt <= $now) {
+  echo json_encode(['ok'=>false,'msg'=>'Elmúlt időpontra nem foglalhatsz']); exit;
+}
+
+$isTodayBooking = ($dt->format('Y-m-d') === $now->format('Y-m-d'));
+$sameDayCutoff = (clone $now)->setTime(15, 45, 0);
+if ($isTodayBooking && $now >= $sameDayCutoff) {
+  echo json_encode(['ok'=>false,'msg'=>'15:45 után már csak a következő munkanapra foglalhatsz']); exit;
+}
+
 $w = (int)$dt->format('N'); // 1=Hétfő … 7=Vasárnap
 $h = (int)$dt->format('H');
 $m = (int)$dt->format('i');
@@ -71,3 +83,4 @@ try {
   // error_log('book_create: '.$e->getMessage());
   echo json_encode(['ok'=>false,'msg'=>'Váratlan hiba történt']); exit;
 }
+

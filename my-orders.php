@@ -1,13 +1,13 @@
 <?php
 session_start();
-require_once __DIR__ . '/biztonsag.php';
+require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/connect.php';
 
 $mysqli = db(); 
 
 // Csak bejelentkezve
 if (empty($_SESSION['belepve']) || empty($_SESSION['user_id'])) {
-  header('Location: /belepes.php');
+  header('Location: /login.php');
   exit;
 }
 $userId = (int)$_SESSION['user_id'];
@@ -94,7 +94,7 @@ if ($mysqli) {
     <?php if (empty($orders)): ?>
       <div class="text-center py-5">
         <p class="mb-3">Még nincs leadott rendelésed.</p>
-        <a class="btn btn-cta text-white" href="/aruhaz.php">
+        <a class="btn btn-cta text-white" href="/store.php">
           <i class="fa-solid fa-bag-shopping me-1"></i> Irány az áruház
         </a>
       </div>
@@ -130,6 +130,12 @@ if ($mysqli) {
 
               // státusz badge
               $status = (string)$o['status'];
+              $statusText = match ($status) {
+                'new'       => 'Új',
+                'confirmed' => 'Megerősített',
+                'cancelled' => 'Törölt',
+                default     => 'Ismeretlen',
+              };
               $badgeClass = match ($status) {
                 'confirmed' => 'bg-success',
                 'cancelled' => 'bg-danger',
@@ -140,7 +146,7 @@ if ($mysqli) {
               <td class="text-nowrap">#<?= (int)$o['id'] ?></td>
               <td><?= e($summary) ?></td>
               <td class="text-end fw-bold"><?= number_format((float)$o['total_amount'], 0, ',', ' ') ?> Ft</td>
-              <td><span class="badge status-badge <?= $badgeClass ?>"><?= e(ucfirst($status)) ?></span></td>
+              <td><span class="badge status-badge <?= $badgeClass ?>"><?= e($statusText) ?></span></td>
               <td class="text-nowrap"><?= e(date('Y.m.d H:i', strtotime($o['created_at']))) ?></td>
               <td><?= e($o['customer_address'] ?: '—') ?></td>
             </tr>
@@ -155,3 +161,4 @@ if ($mysqli) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

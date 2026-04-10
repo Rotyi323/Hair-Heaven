@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/biztonsag.php';
+require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/connect.php';
 
 $mysqli = db();
@@ -182,14 +182,14 @@ if ($isLogged && $mysqli) {
 
     <?php if (!$isLogged): ?>
       <div class="alert alert-warning">
-        A vásárláshoz be kell jelentkezned. <a class="fw-bold" href="/belepes.php">Jelentkezz be</a> vagy <a
-          class="fw-bold" href="/regisztracio.php">regisztrálj</a>!
+        A vásárláshoz be kell jelentkezned. <a class="fw-bold" href="/login.php">Jelentkezz be</a> vagy <a
+          class="fw-bold" href="/register.php">regisztrálj</a>!
       </div>
     <?php endif; ?>
 
     <?php if ($isLogged && !$hasAddress): ?>
       <div class="alert alert-info">
-        A <strong>Rendelés leadása</strong> gomb aktiválásához adj meg egy szállítási címet a <a href="/profil.php"
+        A <strong>Rendelés leadása</strong> gomb aktiválásához adj meg egy szállítási címet a <a href="/profile.php"
           class="fw-bold">Profilom</a> oldalon (min. 10 karakter).
       </div>
     <?php endif; ?>
@@ -198,7 +198,7 @@ if ($isLogged && $mysqli) {
       <?php if (empty($items)): ?>
         <div class="text-center py-5">
           <p class="mb-3">A kosarad üres.</p>
-          <a href="/aruhaz.php" class="btn btn-outline-dark"><i class="fa-solid fa-arrow-left me-1"></i> Vissza az
+          <a href="/store.php" class="btn btn-outline-dark"><i class="fa-solid fa-arrow-left me-1"></i> Vissza az
             áruházba</a>
         </div>
       <?php else: ?>
@@ -265,7 +265,7 @@ if ($isLogged && $mysqli) {
         </div>
 
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-2 mt-3">
-          <a class="btn btn-outline-dark" href="/aruhaz.php">
+          <a class="btn btn-outline-dark" href="/store.php">
             <i class="fa-solid fa-arrow-left me-1"></i> Vásárlás folytatása
           </a>
 
@@ -290,11 +290,11 @@ if ($isLogged && $mysqli) {
               <a class="btn btn-secondary disabled" href="#" tabindex="-1" aria-disabled="true">
                 <i class="fa-solid fa-receipt me-1"></i> Rendelés leadása
               </a>
-              <a class="btn btn-outline-dark" href="/profil.php" title="Adj meg szállítási címet a Profilom oldalon!">
+              <a class="btn btn-outline-dark" href="/profile.php" title="Adj meg szállítási címet a Profilom oldalon!">
                 <i class="fa-solid fa-location-dot me-1"></i> Szállítási cím megadása
               </a>
             <?php else: ?>
-              <a class="btn btn-cta text-white" href="/belepes.php" title="A rendeléshez kérlek jelentkezz be.">
+              <a class="btn btn-cta text-white" href="/login.php" title="A rendeléshez kérlek jelentkezz be.">
                 <i class="fa-solid fa-right-to-bracket me-1"></i> Bejelentkezés a rendeléshez
               </a>
             <?php endif; ?>

@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__.'/../biztonsag.php';
+require_once __DIR__.'/../security.php';
 session_start();
 require_once __DIR__.'/../connect.php';
 
@@ -41,3 +41,4 @@ try {
   // error_log('cancel: '.$e->getMessage());
   echo json_encode(['ok'=>false,'msg'=>'Váratlan hiba történt']); exit;
 }
+

@@ -1,7 +1,7 @@
 <?php
 
 session_start();
-require_once __DIR__ . '/../biztonsag.php';
+require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../connect.php';
 
 try { csrf_validate(); } catch (Throwable $e) {
@@ -10,20 +10,20 @@ try { csrf_validate(); } catch (Throwable $e) {
 
 
 if (empty($_SESSION['belepve']) || empty($_SESSION['user_id'])) {
-  header('Location: /belepes.php'); exit;
+  header('Location: /login.php'); exit;
 }
 
 // Kosár ellenőrzés
 $cart = $_SESSION['cart'] ?? [];
 if (empty($cart)) {
   $_SESSION['flash_error'] = 'A kosár üres, nincs mit leadni.';
-  header('Location: /kosar.php'); exit;
+  header('Location: /cart.php'); exit;
 }
 
 $mysqli = db();
 if (!$mysqli) {
   $_SESSION['flash_error'] = 'Adatbázis hiba. Kérlek próbáld meg újra később.';
-  header('Location: /kosar.php'); exit;
+  header('Location: /cart.php'); exit;
 }
 
 $userId = (int)$_SESSION['user_id'];
@@ -37,7 +37,7 @@ $stmt->close();
 
 if (!$u) {
   $_SESSION['flash_error'] = 'Felhasználó nem található.';
-  header('Location: /kosar.php'); exit;
+  header('Location: /cart.php'); exit;
 }
 
 $username = (string)($u['username'] ?? '');
@@ -47,14 +47,14 @@ $address  = trim((string)($u['address'] ?? ''));
 // cím  min. 10 karakter
 if (mb_strlen($address) < 10) {
   $_SESSION['flash_error'] = 'Rendelés leadásához előbb add meg a szállítási címed (min. 10 karakter) a Profilom oldalon.';
-  header('Location: /profil.php'); exit;
+  header('Location: /profile.php'); exit;
 }
 
 // Termékek behúzása, összegzés
 $ids = array_keys($cart);
 if (empty($ids)) {
   $_SESSION['flash_error'] = 'A kosár üres, nincs mit leadni.';
-  header('Location: /kosar.php'); exit;
+  header('Location: /cart.php'); exit;
 }
 
 $inPlaceholders = implode(',', array_fill(0, count($ids), '?'));
@@ -98,7 +98,7 @@ foreach ($cart as $pid => $qty) {
 
 if (empty($items)) {
   $_SESSION['flash_error'] = 'A kosárban lévő termékek időközben eltűntek.';
-  header('Location: /kosar.php'); exit;
+  header('Location: /cart.php'); exit;
 }
 
 // 2) Mentés tranzakcióban
@@ -136,11 +136,12 @@ try {
   // 3) Kosár ürítése + flash + átirányítás
   unset($_SESSION['cart']);
   $_SESSION['flash_success'] = "Rendelés sikeresen leadva (#{$orderId}).";
-  header('Location: /rendeleseim.php'); exit;
+  header('Location: /my-orders.php'); exit;
 
 } catch (Throwable $e) {
   $mysqli->rollback();
   // error_log('order_place error: '.$e->getMessage());
   $_SESSION['flash_error'] = 'Váratlan hiba történt a rendelés mentése közben.';
-  header('Location: /kosar.php'); exit;
+  header('Location: /cart.php'); exit;
 }
+

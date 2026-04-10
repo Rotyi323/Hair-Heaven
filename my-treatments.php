@@ -1,11 +1,11 @@
 <?php
 session_start();
-require_once __DIR__ . '/biztonsag.php';
+require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/connect.php';
 
 $mysqli = db();
 if (empty($_SESSION['belepve']) || empty($_SESSION['user_id'])) {
-  header('Location: /belepes.php');
+  header('Location: /login.php');
   exit;
 }
 

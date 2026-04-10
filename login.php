@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/biztonsag.php';
+require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/connect.php';
 
 $mysqli = db();
@@ -193,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <div class="auth-card">
-          <form method="post" action="/belepes.php" novalidate>
+          <form method="post" action="/login.php" novalidate>
             <?php
             if (function_exists('csrf_field')) {
               echo csrf_field();
@@ -222,7 +222,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </form>
 
           <div class="text-center mt-3">
-            Még nincs fiókod? <a href="/regisztracio.php">Regisztrálj</a>.
+            Még nincs fiókod? <a href="/register.php">Regisztrálj</a>.
           </div>
         </div>
       </div>

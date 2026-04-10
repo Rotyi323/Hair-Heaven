@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/biztonsag.php';
+require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/connect.php';
 
 $cspNonce = $GLOBALS['CSP_NONCE'] ?? '';
@@ -23,9 +23,28 @@ if ($mysqli) {
     WHERE is_active=1
     ORDER BY id ASC
   ");
-  while ($row = $res->fetch_assoc())
+  while ($row = $res->fetch_assoc()) {
     $services[] = $row;
+  }
 }
+
+// Mai / holnapi alapértelmezett dátum logika
+$now = new DateTime('now');
+$today = new DateTime('today');
+$defaultDateObj = clone $today;
+
+// 15:45 után alapból holnap legyen
+if ((int)$now->format('H') > 15 || ((int)$now->format('H') === 15 && (int)$now->format('i') >= 45)) {
+  $defaultDateObj->modify('+1 day');
+}
+
+// hétvégére ne essen
+while (in_array((int)$defaultDateObj->format('N'), [6, 7], true)) {
+  $defaultDateObj->modify('+1 day');
+}
+
+$defaultDate = $defaultDateObj->format('Y-m-d');
+$minDate     = $defaultDate;
 ?>
 <!doctype html>
 <html lang="hu">
@@ -37,6 +56,7 @@ if ($mysqli) {
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="/assets/hairheaven.css">
   <style>
     .service-card {
@@ -73,8 +93,8 @@ if ($mysqli) {
     <?php if (!$isLogged): ?>
       <div class="alert alert-warning fw-semibold">
         Időpont foglalásához
-        <a class="link-underline link-underline-opacity-0" href="/belepes.php"> jelentkezz be</a> vagy
-        <a class="link-underline link-underline-opacity-0" href="/regisztracio.php">regisztrálj</a>.
+        <a class="link-underline link-underline-opacity-0" href="/login.php"> jelentkezz be</a> vagy
+        <a class="link-underline link-underline-opacity-0" href="/register.php">regisztrálj</a>.
       </div>
     <?php endif; ?>
 
@@ -98,7 +118,11 @@ if ($mysqli) {
               <div class="row g-2 align-items-end">
                 <div class="col-7">
                   <label class="form-label mb-1">Dátum</label>
-                  <input type="date" class="form-control form-control-sm js-date" min="<?= date('Y-m-d') ?>">
+                  <input
+                    type="date"
+                    class="form-control form-control-sm js-date"
+                    min="<?= e($minDate) ?>"
+                    value="<?= e($defaultDate) ?>">
                 </div>
                 <div class="col-5">
                   <label class="form-label mb-1">Idő</label>
@@ -125,16 +149,20 @@ if ($mysqli) {
       select.innerHTML = '';
       if (!values || values.length === 0) {
         const opt = document.createElement('option');
-        opt.value = ''; opt.textContent = '--:--';
+        opt.value = '';
+        opt.textContent = '--:--';
         select.appendChild(opt);
         select.disabled = true;
         return;
       }
+
       values.forEach(v => {
         const opt = document.createElement('option');
-        opt.value = v; opt.textContent = v;
+        opt.value = v;
+        opt.textContent = v;
         select.appendChild(opt);
       });
+
       select.disabled = false;
     }
 
@@ -143,9 +171,32 @@ if ($mysqli) {
       try {
         const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
         const data = await res.json();
-        if (data && data.ok) fillSelect(selectEl, data.slots);
-        else fillSelect(selectEl, []);
-      } catch (e) { fillSelect(selectEl, []); }
+        if (data && data.ok) {
+          fillSelect(selectEl, data.slots);
+        } else {
+          fillSelect(selectEl, []);
+        }
+      } catch (e) {
+        fillSelect(selectEl, []);
+      }
+    }
+
+    function isWeekend(ymd) {
+      const d = new Date(ymd + 'T00:00:00');
+      const wd = d.getDay(); // 0=vas, 6=szo
+      return wd === 0 || wd === 6;
+    }
+
+    function nextBusinessDay(ymd) {
+      const d = new Date(ymd + 'T00:00:00');
+      if (Number.isNaN(d.getTime())) return ymd;
+      while (d.getDay() === 0 || d.getDay() === 6) {
+        d.setDate(d.getDate() + 1);
+      }
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
     }
 
     document.querySelectorAll('.booking-form').forEach(form => {
@@ -154,17 +205,53 @@ if ($mysqli) {
       const timeSel = form.querySelector('.js-time');
       const btn = form.querySelector('button[type="submit"]');
 
-      dateInp?.addEventListener('change', () => {
+      function normalizeDateSelection() {
         const ymd = dateInp.value;
-        const d = new Date(ymd + 'T00:00:00');
-        const wd = d.getDay(); // 0=vas, 6=szo
-        if (isNaN(d.getTime()) || wd === 0 || wd === 6) { fillSelect(timeSel, []); return; }
-        loadSlots(serviceId, ymd, timeSel);
-      });
+        if (!ymd) return;
+
+        if (isWeekend(ymd)) {
+          const nextDay = nextBusinessDay(ymd);
+          dateInp.value = nextDay;
+          dateInp.setCustomValidity('Hétvégére nem lehet foglalni. A következő munkanapot állítottuk be.');
+          dateInp.reportValidity();
+        } else {
+          dateInp.setCustomValidity('');
+        }
+      }
+
+      async function refreshSlots() {
+        normalizeDateSelection();
+        const ymd = dateInp.value;
+        if (!ymd || isWeekend(ymd)) {
+          fillSelect(timeSel, []);
+          return;
+        }
+        await loadSlots(serviceId, ymd, timeSel);
+      }
+
+      if (window.flatpickr && dateInp) {
+        flatpickr(dateInp, {
+          dateFormat: 'Y-m-d',
+          defaultDate: dateInp.value || null,
+          minDate: dateInp.min || null,
+          disableMobile: true,
+          disable: [
+            function(d) {
+              const wd = d.getDay();
+              return wd === 0 || wd === 6;
+            }
+          ],
+          onChange: function() {
+            refreshSlots();
+          }
+        });
+      }
+
+      dateInp?.addEventListener('change', refreshSlots);
 
       form.addEventListener('submit', async (ev) => {
         ev.preventDefault();
-        if (!dateInp.value || !timeSel.value) { return; }
+        if (!dateInp.value || !timeSel.value) return;
 
         const fd = new FormData(form);
         fd.set('service_id', serviceId);
@@ -177,8 +264,9 @@ if ($mysqli) {
         try {
           const res = await fetch('/api/booking_create.php', { method: 'POST', body: fd });
           const data = await res.json();
+
           if (data && data.ok) {
-            await loadSlots(serviceId, dateInp.value, timeSel);
+            await refreshSlots();
             alert('Foglalás rögzítve ✔');
             localStorage.setItem('hh_booking_changed', String(Date.now()));
           } else {
@@ -191,21 +279,26 @@ if ($mysqli) {
           btn.innerHTML = '<i class="fa-regular fa-calendar-check me-1"></i> Időpontot foglalok';
         }
       });
+
+      // Első betöltéskor is töltse be az alapértelmezett dátumhoz a szabad slotokat
+      refreshSlots();
     });
 
-    // Másik lapon történt módosítás -> frissítjük a látható selecteket
     window.addEventListener('storage', (ev) => {
       if (ev.key === 'hh_booking_changed') {
         document.querySelectorAll('.booking-form').forEach(form => {
           const serviceId = form.dataset.service;
           const dateInp = form.querySelector('.js-date');
           const timeSel = form.querySelector('.js-time');
-          if (dateInp?.value) loadSlots(serviceId, dateInp.value, timeSel);
+          if (dateInp?.value) {
+            loadSlots(serviceId, dateInp.value, timeSel);
+          }
         });
       }
     });
   </script>
 
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

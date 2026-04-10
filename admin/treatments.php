@@ -1,7 +1,7 @@
 <?php
-// /admin/kezelesek.php
+// /admin/treatments.php
 session_start();
-require_once __DIR__ . '/../biztonsag.php';
+require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../connect.php';
 
 $mysqli = db();
@@ -331,6 +331,9 @@ if ($mysqli) {
     </li>
     <li class="nav-item" role="presentation">
       <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabTreatments" type="button" role="tab">Kezelések</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="/admin/orders.php">Rendelések</a>
     </li>
   </ul>
 

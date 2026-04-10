@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/biztonsag.php';
+require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/connect.php';
 
 $mysqli = db();
@@ -108,8 +108,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
 
         unset($_SESSION['_token_reg']);
-        header('Location: /belepes.php?registered=1');
-        echo '<!doctype html><meta http-equiv="refresh" content="0;url=/belepes.php?registered=1">';
+        header('Location: /login.php?registered=1');
+        echo '<!doctype html><meta http-equiv="refresh" content="0;url=/login.php?registered=1">';
         exit;
       }
 
@@ -220,7 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <div class="auth-card">
-          <form method="post" action="/regisztracio.php" novalidate>
+          <form method="post" action="/register.php" novalidate>
             <?php
             if (function_exists('csrf_field')) {
               echo csrf_field();
@@ -265,7 +265,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </form>
 
           <div class="text-center mt-3">
-            Már van fiókod? <a href="/belepes.php">Jelentkezz be</a>.
+            Már van fiókod? <a href="/login.php">Jelentkezz be</a>.
           </div>
         </div>
       </div>

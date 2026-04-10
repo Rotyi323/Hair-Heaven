@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/biztonsag.php';
+require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/connect.php';
 
 $mysqli = db(); 
@@ -35,9 +35,9 @@ if (!empty($banners)) {
     $slides[] = [
       'img'   => $b['image_path'],
       'title' => $b['title'],
-      'href1' => '/szolgaltatasok.php',
+      'href1' => '/services.php',
       'text1' => 'Időpontfoglalás',
-      'href2' => !empty($b['link_url']) ? $b['link_url'] : '/aruhaz.php',
+      'href2' => !empty($b['link_url']) ? $b['link_url'] : '/store.php',
       'text2' => 'Áruház',
     ];
   }
@@ -47,17 +47,17 @@ if (!empty($banners)) {
     [
       'img'   => '/assets/hero/hero-1.jpg',
       'title' => 'Őszi ápolások – vágás, színvédelem, kúrák',
-      'href1' => '/szolgaltatasok.php',
+      'href1' => '/services.php',
       'text1' => 'Időpontfoglalás',
-      'href2' => '/aruhaz.php',
+      'href2' => '/store.php',
       'text2' => 'Áruház',
     ],
     [
       'img'   => '/assets/hero/hero-2.jpg',
       'title' => 'Top ajánlatok & kedvencek – fedezd fel!',
-      'href1' => '/aruhaz.php',
+      'href1' => '/store.php',
       'text1' => 'Felfedezem',
-      'href2' => '/aruhaz.php', 
+      'href2' => '/store.php', 
       'text2' => 'Áruház',
     ],
   ];
@@ -227,7 +227,7 @@ if (empty($profiles)) {
         <h2 class="section-title">Top ajánlatok</h2>
         <p class="section-sub mb-0">Kiemelt kedvencek válogatása – azonnal kosárba teheted.</p>
       </div>
-      <a class="btn btn-outline-dark btn-sm" href="/aruhaz.php">
+      <a class="btn btn-outline-dark btn-sm" href="/store.php">
         Összes termék <i class="fa-solid fa-arrow-right ms-1"></i>
       </a>
     </div>
@@ -272,7 +272,7 @@ if (empty($profiles)) {
         <h2 class="section-title">Szolgáltatásaink</h2>
         <p class="section-sub mb-0">Foglalj időpontot kedvenc kezelésedre, pár kattintással.</p>
       </div>
-      <a class="btn btn-outline-dark btn-sm" href="/szolgaltatasok.php">
+      <a class="btn btn-outline-dark btn-sm" href="/services.php">
         Összes szolgáltatás <i class="fa-solid fa-arrow-right ms-1"></i>
       </a>
     </div>
@@ -286,7 +286,7 @@ if (empty($profiles)) {
             </div>
             <div class="service-chip mb-2"><i class="fa-regular fa-clock me-1"></i> <?= (int)$s['duration_minutes'] ?> perc</div>
             <p class="mb-3"><?= htmlspecialchars($s['description'], ENT_QUOTES, 'UTF-8') ?></p>
-            <a href="/szolgaltatasok.php" class="btn btn-cta text-white">Időpontot foglalok</a>
+            <a href="/services.php" class="btn btn-cta text-white">Időpontot foglalok</a>
           </div>
         </div>
       <?php endforeach; ?>
@@ -341,3 +341,4 @@ if (empty($profiles)) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

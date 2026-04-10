@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/../biztonsag.php';
+require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../connect.php';
 
 $mysqli = db();
@@ -132,7 +132,10 @@ $types=['shampoo'=>'Sampon','conditioner'=>'Balzsam','mask'=>'Maszk','treatment'
       <a class="nav-link active" href="/admin/stock.php">Készlet</a>
     </li>
     <li class="nav-item" role="presentation">
-      <a class="nav-link" href="/admin/kezelesek.php">Kezelések</a>
+      <a class="nav-link" href="/admin/treatments.php">Kezelések</a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="/admin/orders.php">Rendelések</a>
     </li>
   </ul>
 

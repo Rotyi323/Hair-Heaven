@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/biztonsag.php';
+require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/connect.php';
 
 $mysqli = db();
@@ -193,7 +193,7 @@ if ($mysqli) {
     }
   });
 
-  // lapozás
+  // lapozás 
   $total = count($items);
   $pages = max(1, (int) ceil($total / $PAGE_SIZE));
   $page = min($page, $pages);
@@ -328,7 +328,7 @@ function qs_without_page()
       filter: brightness(1.05);
     }
 
-    /* Dual range slider */
+  
     .range-wrap {
       position: relative;
     }
@@ -431,7 +431,7 @@ function qs_without_page()
 
   <!-- SZŰRŐK -->
   <div class="container my-3">
-    <form class="filter-card" method="get" action="/aruhaz.php" id="filterForm">
+    <form class="filter-card" method="get" action="/store.php" id="filterForm">
       <!-- 1. sor: általános szűrők + gombok -->
       <div class="row g-3 align-items-end">
         <div class="col-12 col-md-4 col-lg-3">
@@ -531,7 +531,7 @@ function qs_without_page()
                   <div class="text-muted mb-3" style="font-size:.9rem;"><?= e(ucfirst($p['type'])) ?></div>
                 <?php endif; ?>
                 <div class="mt-auto d-grid gap-2">
-                  <a class="btn btn-outline-dark" href="/termek.php?id=<?= (int) $p['id'] ?>">Részletek</a>
+           
                   <!-- TERMÉKKÁRTYA GOMBJA AZ ÁRUHÁZBAN -->
                   <form method="post" action="/api/cart_add.php">
                     <?= csrf_field() ?>
@@ -559,10 +559,10 @@ function qs_without_page()
           $next = min($pages, $page + 1);
           ?>
           <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-            <a class="page-link" href="/aruhaz.php?page=1<?= $qs ?>">«</a>
+            <a class="page-link" href="/store.php?page=1<?= $qs ?>">«</a>
           </li>
           <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-            <a class="page-link" href="/aruhaz.php?page=<?= $prev . $qs ?>">‹</a>
+            <a class="page-link" href="/store.php?page=<?= $prev . $qs ?>">‹</a>
           </li>
           <?php
           $window = 3;
@@ -572,16 +572,16 @@ function qs_without_page()
             echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
           for ($i = $start; $i <= $end; $i++) {
             $active = ($i === $page) ? 'active' : '';
-            echo '<li class="page-item ' . $active . '"><a class="page-link" href="/aruhaz.php?page=' . $i . $qs . '">' . $i . '</a></li>';
+            echo '<li class="page-item ' . $active . '"><a class="page-link" href="/store.php?page=' . $i . $qs . '">' . $i . '</a></li>';
           }
           if ($end < $pages)
             echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
           ?>
           <li class="page-item <?= $page >= $pages ? 'disabled' : '' ?>">
-            <a class="page-link" href="/aruhaz.php?page=<?= $next . $qs ?>">›</a>
+            <a class="page-link" href="/store.php?page=<?= $next . $qs ?>">›</a>
           </li>
           <li class="page-item <?= $page >= $pages ? 'disabled' : '' ?>">
-            <a class="page-link" href="/aruhaz.php?page=<?= $pages . $qs ?>">»</a>
+            <a class="page-link" href="/store.php?page=<?= $pages . $qs ?>">»</a>
           </li>
         </ul>
       </nav>
@@ -620,6 +620,8 @@ function qs_without_page()
       const step = parseInt(r1.getAttribute('step'), 10) || 10;
 
       function clamp(v) { return Math.max(min, Math.min(max, v)); }
+      //Ezres formázás
+      
       function formatThousands(n) {
         const s = String(n).replace(/\D/g, '');
         return s.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -630,6 +632,7 @@ function qs_without_page()
         fill.style.left = pct1 + '%';
         fill.style.width = (pct2 - pct1) + '%';
       }
+      //Slider 
       function syncFromRanges() {
         let v1 = parseInt(r1.value, 10);
         let v2 = parseInt(r2.value, 10);
