@@ -28,7 +28,7 @@ if ($mysqli) {
   }
 }
 
-// Mai / holnapi alapértelmezett dátum logika
+
 $now = new DateTime('now');
 $today = new DateTime('today');
 $defaultDateObj = clone $today;

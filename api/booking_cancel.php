@@ -16,7 +16,7 @@ if (!$mysqli) { echo json_encode(['ok'=>false,'msg'=>'DB hiba']); exit; }
 
 $bookingId = (int)($_POST['booking_id'] ?? 0);
 $userId    = (int)$_SESSION['user_id'];
-$isOwner   = (!empty($_SESSION['role']) && $_SESSION['role']==='owner'); // ha van tulaj/admin
+$isOwner   = (!empty($_SESSION['role']) && $_SESSION['role']==='owner'); // ha van admin
 
 try {
   // jogosultság: saját vagy owner

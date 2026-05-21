@@ -29,7 +29,7 @@ $errors = [];
 $username = '';
 $email = '';
 
-// POST feldolgozás
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   // CSRF

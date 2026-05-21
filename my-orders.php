@@ -5,7 +5,7 @@ require_once __DIR__ . '/connect.php';
 
 $mysqli = db(); 
 
-// Csak bejelentkezve
+
 if (empty($_SESSION['belepve']) || empty($_SESSION['user_id'])) {
   header('Location: /login.php');
   exit;
@@ -14,10 +14,9 @@ $userId = (int)$_SESSION['user_id'];
 
 function e($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
-//Rendelések lehúzása (orders)
+
 $orders = [];
 if ($mysqli) {
-  // 1) fej adatok
   $stmt = $mysqli->prepare("
     SELECT id, total_amount, status, customer_name, customer_email, customer_address, created_at
     FROM orders
@@ -34,7 +33,7 @@ if ($mysqli) {
   $stmt->close();
 
   if (!empty($orders)) {
-    // 2) tételek egyben (order_items), majd csoportosítjuk
+    // tételek egyben 
     $ids = array_keys($orders);
     $in  = implode(',', array_fill(0, count($ids), '?'));
     $types = str_repeat('i', count($ids));
@@ -121,7 +120,7 @@ if ($mysqli) {
                 foreach ($o['items'] as $it) {
                   $parts[] = $it['product_name'] . ' × ' . (int)$it['qty'];
                 }
-                // ha túl hosszú, vágjuk
+                // vágás
                 $summary = implode(', ', $parts);
                 if (mb_strlen($summary) > 120) {
                   $summary = mb_substr($summary, 0, 117) . '…';

@@ -6,7 +6,7 @@ require_once __DIR__ . '/connect.php';
 $cspNonce = $GLOBALS['CSP_NONCE'] ?? '';
 $mysqli   = db();
 
-//csak bejelentkezve
+
 if (empty($_SESSION['belepve']) || empty($_SESSION['user_id'])) {
   header('Location: /login.php');
   exit;
@@ -28,10 +28,9 @@ if (!$user) { http_response_code(404); exit('Felhasználó nem található.'); }
 // későbbi törléshez megőrizzük a jelenlegi avatar elérési útját
 $oldAvatar = $user['avatar'] ?? null;
 
-//üzenetek
 $okMsg = $errMsg = '';
 
-// POST feldolgozás (mentés)
+//mentés
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   csrf_validate();
 
@@ -110,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($errMsg === '' && $mysqli) {
     $mysqli->begin_transaction();
     try {
-      // cím + (opcionálisan) avatar
+      // cím + avatar
       if ($newAvatarPath !== null) {
         $stmt = $mysqli->prepare("UPDATE users SET avatar=?, address=?, updated_at=NOW() WHERE id=?");
         $stmt->bind_param('ssi', $newAvatarPath, $address, $userId);
@@ -156,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 }
 
-// Avatar megjelenítés (fallback)
+// Avatar megjelenítés (ha nincs, akkor helyettesítő kép)
 $avatarUrl = !empty($user['avatar']) ? $user['avatar'] : '/assets/img/avatar-placeholder.svg';
 $addressVal = (string)($user['address'] ?? '');
 ?>

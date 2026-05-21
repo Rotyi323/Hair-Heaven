@@ -13,7 +13,7 @@ if (ini_get("session.use_cookies")) {
 session_unset();
 session_destroy();
 
-// Vissza a főoldalra
+
 header('Location: /');
 echo '<!doctype html><meta http-equiv="refresh" content="0;url=/">';
 exit;

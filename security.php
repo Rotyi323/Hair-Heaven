@@ -46,9 +46,9 @@ if (!function_exists('e')) {
     function e($str){ return htmlspecialchars((string)$str, ENT_QUOTES, 'UTF-8'); }
 }
 
-// Fehérlistás beolvasók
+
 if (!function_exists('get_str')) {
-    // Szöveg: max hossz, opcionális regexp mintával (pl. csak betű/szám/space)
+    // Szöveg: csak betű/szám/space
     function get_str($key, $default = '', $maxlen = 200, $pattern = null, $src = 'GET') {
         $arr = ($src === 'POST') ? $_POST : $_GET;
         if (!isset($arr[$key])) return $default;
@@ -87,7 +87,7 @@ if (!function_exists('get_float')) {
 }
 
 if (!function_exists('get_enum')) {
-    // Fehérlista: csak a megadott elemek egyike engedélyezett
+    // csak a megadott elemek egyike engedélyezett
     function get_enum($key, array $allowed, $default = '', $src = 'GET'){
         $arr = ($src === 'POST') ? $_POST : $_GET;
         if (!isset($arr[$key])) return $default;
@@ -125,7 +125,7 @@ if (!function_exists('csrf_token')) {
     }
 }
 
-//Egyszerű POST rate limit (DoS ellen)
+// POST rate limit (DoS ellen)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
     $fp = sys_get_temp_dir() . '/hh_rl_' . md5($ip);
