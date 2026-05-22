@@ -10,8 +10,6 @@ https://media.istockphoto.com/id/914559306/photo/portrait-od-handsome-man-in-stu
 products/loreal protect mask
 https://gordonsdirect.com/products/loreal-paris-elvive-colour-protect-anti-brassiness-purple-mask-250ml?srsltid=AfmBOoq-SzWw6kNlhw7HG3p_QFHWNers0LuFg-3m_dzbUbHy2TaWXkTY
 
-banner hero1
-https://www.fabriziosalonspa.com/wp-content/uploads/hair.jpg
 
 Kérastase Scalp Elixir Treatment
 https://www.ozhairandbeauty.com/products/kerastase-nutritive-nutri-supplement-scalp-serum-50ml
@@ -29,10 +27,10 @@ L'Oréal Paris sampon - Elseve Hyaluron Pure Shampoo (400ml)
 https://licilasicdn.s3.amazonaws.com/public/product_images/48232/main/original.jpg
 
 
-
 L'ORÉAL PARIS Elseve Big Hair Day Dúsító hajápoló 200 ml
 https://www.ekozmetikum.hu/termek/loreal-paris-elseve-big-hair-day-dusito-hajapolo-200-ml/?gad_source=1&gad_campaignid=17247211097&gbraid=0AAAAACmo_4n3Th7B3Bsy9X62u4bYQrgLK&gclid=CjwKCAjw1tLOBhAMEiwAiPkRHjPsS_K1gtkaZk4E7jNNJ8apOgLPuMRqEc8HSU-XD95q0TLFZBc81hoCWDAQAvD_BwE
 
 L’Oreal Paris Elseve Glycolic Gloss Fényes kezelés Treaitment
 https://www.pinkpanda.hu/termek/loreal-paris-elseve-glycolic-gloss-treaitment-366_193
-banner hero 2, kezelések GPT generált
+
+banner hero 1-2, kezelések GPT generált
