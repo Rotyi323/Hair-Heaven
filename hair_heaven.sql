@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: 127.0.0.1
--- Létrehozás ideje: 2026. Ápr 10. 13:26
+-- Létrehozás ideje: 2026. Máj 23. 12:47
 -- Kiszolgáló verziója: 10.4.27-MariaDB
 -- PHP verzió: 8.2.0
 
@@ -104,7 +104,23 @@ INSERT INTO `audit_log` (`id`, `user_id`, `action`, `entity`, `entity_id`, `crea
 (61, 2, 'purchase', 'products', 7, '2026-04-07 13:29:35'),
 (62, 2, 'insert', 'products', 10, '2026-04-07 13:38:53'),
 (63, 2, 'update', 'products', 10, '2026-04-07 13:39:28'),
-(64, 2, 'insert', 'products', 11, '2026-04-07 13:46:04');
+(64, 2, 'insert', 'products', 11, '2026-04-07 13:46:04'),
+(65, 2, 'update', 'orders', 9, '2026-04-10 14:05:19'),
+(66, 2, 'update', 'orders', 9, '2026-04-10 14:05:21'),
+(67, 2, 'update', 'orders', 3, '2026-04-10 14:05:26'),
+(68, 2, 'purchase', 'products', 10, '2026-04-10 14:12:35'),
+(69, 2, 'purchase', 'products', 11, '2026-04-10 14:12:39'),
+(70, 2, 'purchase', 'products', 10, '2026-04-10 14:12:53'),
+(71, 2, 'purchase', 'products', 11, '2026-04-10 14:13:02'),
+(72, 2, 'purchase', 'products', 11, '2026-04-10 14:13:10'),
+(73, 2, 'update', 'products', 11, '2026-04-10 14:15:15'),
+(74, 2, 'update', 'products', 11, '2026-04-10 14:15:19'),
+(75, 2, 'update', 'products', 11, '2026-04-10 14:15:22'),
+(76, 2, 'update', 'products', 11, '2026-04-10 14:15:29'),
+(77, 2, 'update', 'products', 11, '2026-04-10 14:15:37'),
+(78, 2, 'update', 'products', 1, '2026-04-10 14:15:43'),
+(79, 2, 'update', 'user_treatments', 2, '2026-05-23 10:48:37'),
+(80, 2, 'insert', 'user_treatment_products', 2, '2026-05-23 10:48:59');
 
 -- --------------------------------------------------------
 
@@ -125,8 +141,8 @@ CREATE TABLE `banners` (
 --
 
 INSERT INTO `banners` (`id`, `title`, `image_path`, `link_url`, `is_active`) VALUES
-(1, 'Őszi ápolás', 'assets/hero/hero-1.jpg', '/store.php?type=mask', 1),
-(2, 'Top ajánlatok', 'assets/hero/hero-2.png', '/store.php?type=mask', 1);
+(1, 'Őszi ápolás', 'assets/hero/hero-1.jpg', '/aruhaz.php?type=mask', 1),
+(2, 'Top ajánlatok', 'assets/hero/hero-2.png', '/aruhaz.php?type=mask', 1);
 
 -- --------------------------------------------------------
 
@@ -157,7 +173,9 @@ INSERT INTO `bookings` (`id`, `user_id`, `service_id`, `appointment_datetime`, `
 (6, 2, 2, '2026-04-07 08:00:00', 'expired', NULL, '2026-04-07 15:51:52'),
 (7, 2, 2, '2026-04-07 08:00:00', 'expired', NULL, '2026-04-07 15:59:16'),
 (8, 2, 1, '2026-04-10 12:30:00', 'cancelled', NULL, '2026-04-10 12:24:05'),
-(9, 2, 2, '2026-04-13 09:45:00', 'pending', NULL, '2026-04-10 12:26:16');
+(9, 2, 2, '2026-04-13 09:45:00', 'expired', NULL, '2026-04-10 12:26:16'),
+(10, 2, 2, '2026-04-10 14:15:00', 'expired', NULL, '2026-04-10 14:11:11'),
+(11, 2, 4, '2026-05-11 08:00:00', 'pending', NULL, '2026-05-10 14:15:52');
 
 -- --------------------------------------------------------
 
@@ -181,13 +199,15 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `user_id`, `total_amount`, `status`, `customer_name`, `customer_email`, `customer_address`, `created_at`) VALUES
-(2, 2, '53580.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-05 17:32:30'),
-(3, 2, '61440.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-06 00:31:28'),
+(2, 2, '53580.00', 'confirmed', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-05 17:32:30'),
+(3, 2, '61440.00', 'cancelled', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-06 00:31:28'),
 (4, 2, '25130.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-06 19:06:33'),
 (5, 2, '117896.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-13 20:55:19'),
 (6, 2, '11998.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-28 18:54:57'),
 (7, 2, '67508.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-28 19:19:07'),
-(8, 2, '29995.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-29 19:33:10');
+(8, 2, '29995.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-01-29 19:33:10'),
+(9, 2, '64554.00', 'confirmed', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-04-10 13:59:57'),
+(10, 2, '66935.00', 'new', 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '2026-04-10 14:11:53');
 
 -- --------------------------------------------------------
 
@@ -225,7 +245,17 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `product_name`, `unit
 (17, 7, 3, 'Color Protect Mask', '5999.00', 2),
 (18, 7, 1, 'Fructis Goodbye Damage', '3490.00', 2),
 (19, 7, 4, 'Scalp Elixir Treatment', '8990.00', 4),
-(20, 8, 3, 'Color Protect Mask', '5999.00', 5);
+(20, 8, 3, 'Color Protect Mask', '5999.00', 5),
+(21, 9, 3, 'Color Protect Mask', '5999.00', 1),
+(22, 9, 2, 'Deep Cleanse Shampoo', '4190.00', 1),
+(23, 9, 10, 'Elseve Big Hair Day', '4299.00', 4),
+(24, 9, 1, 'Fructis Goodbye Damage', '3490.00', 1),
+(25, 9, 4, 'Scalp Elixir Treatment', '33679.00', 1),
+(26, 10, 2, 'Deep Cleanse Shampoo', '4190.00', 4),
+(27, 10, 10, 'Elseve Big Hair Day', '4299.00', 2),
+(28, 10, 11, 'Elseve Glycolic Gloss Fényes kezelés Treaitment', '5199.00', 1),
+(29, 10, 9, 'Elseve Hyaluron Pure Shampoo', '2699.00', 1),
+(30, 10, 4, 'Scalp Elixir Treatment', '33679.00', 1);
 
 --
 -- Eseményindítók `order_items`
@@ -286,15 +316,15 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `brand`, `name`, `type`, `description`, `price`, `cost_price`, `stock_qty`, `image`, `is_active`, `is_featured`, `created_at`, `updated_at`) VALUES
-(1, 'Garnier', 'Fructis Goodbye Damage', 'conditioner', 'Erősítő balzsam a károsult hajra', '3490.00', '2500.00', 279, 'uploads/products/garnier fructis.jpg', 1, 0, '2025-11-13 19:06:29', '2026-04-07 13:28:22'),
-(2, 'Schwarzkopf', 'Deep Cleanse Shampoo', 'shampoo', 'Mélytisztító sampon zsíros fejbőrre.', '4190.00', '3000.00', 18, '/uploads/products/p_20260407_131427_d5a630e7.webp', 1, 0, '2025-11-13 19:06:29', '2026-04-07 13:14:27'),
-(3, 'L\'Oréal', 'Color Protect Mask', 'mask', 'Színvédő hajpakolás festett hajra.', '5999.00', '2000.00', 14, 'uploads/products/loreal protect mask.jpg', 1, 0, '2025-11-13 19:06:29', '2026-04-07 13:28:43'),
-(4, 'Kérastase', 'Scalp Elixir Treatment', 'treatment', 'Fejbőrerősítő, kúrakezeléshez.', '33679.00', '6000.00', 42, '/uploads/products/p_20260407_131217_fe7bd263.png', 1, 1, '2025-11-13 19:06:29', '2026-04-07 13:28:36'),
+(1, 'Garnier', 'Fructis Goodbye Damage', 'conditioner', 'Erősítő balzsam a károsult hajra', '3490.00', '2500.00', 278, 'uploads/products/garnier fructis.jpg', 0, 0, '2025-11-13 19:06:29', '2026-04-10 14:15:43'),
+(2, 'Schwarzkopf', 'Deep Cleanse Shampoo', 'shampoo', 'Mélytisztító sampon zsíros fejbőrre.', '4190.00', '3000.00', 13, '/uploads/products/p_20260407_131427_d5a630e7.webp', 1, 0, '2025-11-13 19:06:29', '2026-04-10 14:11:53'),
+(3, 'L\'Oréal', 'Color Protect Mask', 'mask', 'Színvédő hajpakolás festett hajra.', '5999.00', '2000.00', 13, 'uploads/products/loreal protect mask.jpg', 1, 0, '2025-11-13 19:06:29', '2026-04-10 13:59:57'),
+(4, 'Kérastase', 'Scalp Elixir Treatment', 'treatment', 'Fejbőrerősítő, kúrakezeléshez.', '33679.00', '6000.00', 40, '/uploads/products/p_20260407_131217_fe7bd263.png', 1, 1, '2025-11-13 19:06:29', '2026-04-10 14:11:53'),
 (7, 'Schwarzkopf', 'Gliss Full Hair Wonder sampon', 'shampoo', 'törékeny és gyenge hajra, koffeinnel és peptidekkel, vegán formula, 400 ml', '1586.00', '1000.00', 20, '/uploads/products/p_20260407_131906_35b90555.png', 1, 0, '2026-04-07 13:18:10', '2026-04-07 13:29:35'),
 (8, 'Garnier', 'Hyaluronic Aloe Gel-Wash', 'other', 'Hatékony tisztítás, és mélyreható hidratáció egy lépésben. A Garnier Skin Naturals Hyaluronic Aloe tisztító gél eltávolítja a mindennapi szennyeződéseket, és a smink maradványait is. Csökkenti a pórusok láthatóságát, megelőzi az arcbőr kiszáradását, így visszanyeri egészséges megjelenését.', '3199.00', '2600.00', 100, '/uploads/products/p_20260407_132436_71e58ea5.jpg', 1, 1, '2026-04-07 13:24:36', '2026-04-07 13:29:12'),
-(9, 'L\'Oréal', 'Elseve Hyaluron Pure Shampoo', 'shampoo', '', '2699.00', '2000.00', 50, '/uploads/products/p_20260407_132818_c8855826.jpg', 1, 1, '2026-04-07 13:28:18', '2026-04-07 13:29:20'),
-(10, 'L\'Oréal', 'Elseve Big Hair Day', 'other', 'Dúsító hajápoló 200 ml', '4299.00', '0.00', 0, '/uploads/products/p_20260407_133928_3f3bd39b.png', 1, 0, '2026-04-07 13:38:53', '2026-04-07 13:39:28'),
-(11, 'L\'Oréal', 'Elseve Glycolic Gloss Fényes kezelés Treaitment', 'treatment', 'Szeretnéd életed legfényesebb haját*? Fedezze fel a L\'Oreal Paris Elvive Glycolic Gloss leöblítő 5 perces lamináló kezelést, az új otthoni fényesítő rutin hősét', '5199.00', '0.00', 0, '/uploads/products/p_20260407_134604_6cc16f65.png', 1, 0, '2026-04-07 13:46:04', '2026-04-07 13:46:04');
+(9, 'L\'Oréal', 'Elseve Hyaluron Pure Shampoo', 'shampoo', '', '2699.00', '2000.00', 49, '/uploads/products/p_20260407_132818_c8855826.jpg', 1, 1, '2026-04-07 13:28:18', '2026-04-10 14:11:53'),
+(10, 'L\'Oréal', 'Elseve Big Hair Day', 'other', 'Dúsító hajápoló 200 ml', '4299.00', '2000.00', 34, '/uploads/products/p_20260407_133928_3f3bd39b.png', 1, 0, '2026-04-07 13:38:53', '2026-04-10 14:12:53'),
+(11, 'L\'Oréal', 'Elseve Glycolic Gloss Fényes kezelés Treaitment', 'treatment', 'Szeretnéd életed legfényesebb haját*? Fedezze fel a L\'Oreal Paris Elvive Glycolic Gloss leöblítő 5 perces lamináló kezelést, az új otthoni fényesítő rutin hősét', '5198.00', '4000.00', 4040, '/uploads/products/p_20260407_134604_6cc16f65.png', 1, 0, '2026-04-07 13:46:04', '2026-04-10 14:15:37');
 
 -- --------------------------------------------------------
 
@@ -455,7 +485,22 @@ INSERT INTO `stock_movements` (`id`, `product_id`, `qty_change`, `unit_cost`, `r
 (19, 3, -5, NULL, 'order', 8, '2026-01-29 19:33:10'),
 (20, 8, 100, '2600.00', 'purchase', NULL, '2026-04-07 13:29:12'),
 (21, 9, 50, '2000.00', 'purchase', NULL, '2026-04-07 13:29:20'),
-(22, 7, 20, '1000.00', 'purchase', NULL, '2026-04-07 13:29:35');
+(22, 7, 20, '1000.00', 'purchase', NULL, '2026-04-07 13:29:35'),
+(23, 3, -1, NULL, 'order', 9, '2026-04-10 13:59:57'),
+(24, 2, -1, NULL, 'order', 9, '2026-04-10 13:59:57'),
+(25, 10, -4, NULL, 'order', 9, '2026-04-10 13:59:57'),
+(26, 1, -1, NULL, 'order', 9, '2026-04-10 13:59:57'),
+(27, 4, -1, NULL, 'order', 9, '2026-04-10 13:59:57'),
+(28, 2, -4, NULL, 'order', 10, '2026-04-10 14:11:53'),
+(29, 10, -2, NULL, 'order', 10, '2026-04-10 14:11:53'),
+(30, 11, -1, NULL, 'order', 10, '2026-04-10 14:11:53'),
+(31, 9, -1, NULL, 'order', 10, '2026-04-10 14:11:53'),
+(32, 4, -1, NULL, 'order', 10, '2026-04-10 14:11:53'),
+(33, 10, 30, '0.00', 'purchase', NULL, '2026-04-10 14:12:35'),
+(34, 11, 40, '0.00', 'purchase', NULL, '2026-04-10 14:12:39'),
+(35, 10, 10, '2000.00', 'purchase', NULL, '2026-04-10 14:12:53'),
+(36, 11, 4000, '1.00', 'purchase', NULL, '2026-04-10 14:13:02'),
+(37, 11, 1, '4000.00', 'purchase', NULL, '2026-04-10 14:13:10');
 
 -- --------------------------------------------------------
 
@@ -481,10 +526,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `address`, `password_hash`, `avatar`, `role`, `has_active_treatment`, `created_at`, `updated_at`) VALUES
-(1, 'Lakatos Brendon', 'lakatos@gmail.com', NULL, '$2y$10$c/G2RWUjlqlDJoc436BNduAwN5vHFsPnXXvFm6xGxpW7UZWiACIze', NULL, 'customer', 0, '2026-01-02 14:41:21', '2026-01-02 14:41:47'),
 (2, 'Admin', 'admin@gmail.com', '6720 Szeged Dugonics tér 3', '$2y$10$Fc9z1QVMu.KZksP3y62Vze0X9SN4y1/0E4mY3aAQQaoeapadmHUT.', '/uploads/avatars/u2_1767622454.png', 'owner', 0, '2026-01-02 14:58:34', '2026-01-05 17:06:45'),
 (3, 'Knyihár Roland', 'knyiharroland@gmail.com', NULL, '$2y$10$7V/mwnWtgshqYBbQSjIy1.ayx9KX.oxB0s37LXPmGKK.RdM9jMNCm', NULL, 'customer', 1, '2026-01-02 14:55:56', '2026-03-21 16:21:38'),
-(5, 'Brendon az úr', 'lakatos.b@gmail.com', NULL, '$2y$10$D9HFaGmMZSfyDjTW9PkQMuSCVw5wQ6tbF3WpkbaJOORKKuUU8npLe', '/uploads/avatars/u5_1767540046.png', 'customer', 1, '2026-01-04 16:19:42', '2026-03-21 16:07:56'),
 (6, 'Teszt Elek123', 'teszt123@gmail.com', NULL, '$2y$10$D83xinVKs1kN1tlJNS9LUuMlya2gj5wHcq60Sk97APduUiegvMYfO', NULL, 'customer', 0, '2026-01-04 16:30:48', '2026-01-04 16:30:48'),
 (7, 'Stan', 'stan@gmail.com', NULL, '$2y$10$WRvv6fl/Pd8UW4A0M/yT6.SLSfjDW2.lYSg6wn7LOKWa8hmppoGYK', NULL, 'customer', 0, '2026-01-05 17:07:56', '2026-01-05 17:07:56'),
 (8, 'Teszt Elek1111', 'teszt1111@gmail.com', NULL, '$2y$10$rvilTmpHeKJyL3kb7C/LjOEzIj0noiGdLJppSW811B3YqoDVYT.Qm', NULL, 'customer', 1, '2026-03-21 16:26:08', '2026-03-21 16:28:52');
@@ -513,8 +556,7 @@ CREATE TABLE `user_treatments` (
 --
 
 INSERT INTO `user_treatments` (`id`, `user_id`, `title`, `description`, `status`, `started_at`, `ended_at`, `created_by`, `created_at`, `updated_at`) VALUES
-(1, 5, 'Korpa elleni balzsam', 'Korpa elleni balzsamozás', 'active', '2026-03-21 16:07:56', NULL, 2, '2026-03-21 16:07:56', '2026-03-21 16:21:27'),
-(2, 3, 'xc', 'cxx', 'paused', '2026-03-21 16:21:38', NULL, 2, '2026-03-21 16:21:38', '2026-03-21 16:23:17'),
+(2, 3, 'xc', 'cxx', 'active', '2026-03-21 16:21:38', NULL, 2, '2026-03-21 16:21:38', '2026-05-23 10:48:37'),
 (3, 8, 'teszt', 'teszt', 'active', '2026-03-21 16:28:52', NULL, 2, '2026-03-21 16:28:52', '2026-03-21 16:28:52');
 
 -- --------------------------------------------------------
@@ -539,7 +581,6 @@ CREATE TABLE `user_treatment_entries` (
 --
 
 INSERT INTO `user_treatment_entries` (`id`, `treatment_id`, `title`, `note`, `entry_date`, `image_path`, `created_by`, `created_at`) VALUES
-(1, 1, 'Kezdet', '', '2026-03-21 16:11:00', '/uploads/treatments/treat_20260321_161235_97b96575.jpg', 2, '2026-03-21 16:12:35'),
 (2, 2, 'sds', 'ds', '2026-03-04 16:21:00', '/uploads/treatments/treat_20260321_162158_daf9e90b.jpg', 2, '2026-03-21 16:21:58'),
 (3, 2, '2.', '', '2026-03-19 16:22:00', '/uploads/treatments/treat_20260321_162302_9101cfc9.jpg', 2, '2026-03-21 16:23:02'),
 (4, 3, 'Kezdet', 'teszt', '2026-03-21 16:29:00', '/uploads/treatments/treat_20260321_162937_bce93c34.jpg', 2, '2026-03-21 16:29:37'),
@@ -564,10 +605,10 @@ CREATE TABLE `user_treatment_products` (
 --
 
 INSERT INTO `user_treatment_products` (`id`, `treatment_id`, `product_id`, `usage_note`, `created_at`) VALUES
-(1, 1, 2, 'het 2x', '2026-03-21 16:11:45'),
 (2, 2, 1, 'sdsds', '2026-03-21 16:21:44'),
 (3, 3, 4, 'het 2x', '2026-03-21 16:29:02'),
-(4, 3, 2, 'sok', '2026-03-21 16:29:11');
+(4, 3, 2, 'sok', '2026-03-21 16:29:11'),
+(5, 2, 7, '', '2026-05-23 10:48:59');
 
 --
 -- Indexek a kiírt táblákhoz
@@ -710,7 +751,7 @@ ALTER TABLE `user_treatment_products`
 -- AUTO_INCREMENT a táblához `audit_log`
 --
 ALTER TABLE `audit_log`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT a táblához `banners`
@@ -722,19 +763,19 @@ ALTER TABLE `banners`
 -- AUTO_INCREMENT a táblához `bookings`
 --
 ALTER TABLE `bookings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT a táblához `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT a táblához `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT a táblához `products`
@@ -776,7 +817,7 @@ ALTER TABLE `services`
 -- AUTO_INCREMENT a táblához `stock_movements`
 --
 ALTER TABLE `stock_movements`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT a táblához `users`
@@ -800,7 +841,7 @@ ALTER TABLE `user_treatment_entries`
 -- AUTO_INCREMENT a táblához `user_treatment_products`
 --
 ALTER TABLE `user_treatment_products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Megkötések a kiírt táblákhoz
