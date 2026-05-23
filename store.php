@@ -684,7 +684,6 @@ function qs_without_page()
         f2.value = formatThousands(max);
         drawFill(min, max);
 
-        // tisztítás submit előtt
         const hiddenMin = (f1.value || '').replace(/\D/g, '');
         const hiddenMax = (f2.value || '').replace(/\D/g, '');
         f1.value = hiddenMin;

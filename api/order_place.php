@@ -44,7 +44,7 @@ $username = (string)($u['username'] ?? '');
 $email    = (string)($u['email'] ?? '');
 $address  = trim((string)($u['address'] ?? ''));
 
-// cím  min. 10 karakter
+// cím  10 karakter
 if (mb_strlen($address) < 10) {
   $_SESSION['flash_error'] = 'Rendelés leadásához előbb add meg a szállítási címed (min. 10 karakter) a Profilom oldalon.';
   header('Location: /profile.php'); exit;
@@ -101,10 +101,10 @@ if (empty($items)) {
   header('Location: /cart.php'); exit;
 }
 
-// 2) Mentés tranzakcióban
+//Mentés tranzakcióban
 $mysqli->begin_transaction();
 try {
-  // orders
+
   $sqlO = "INSERT INTO orders (user_id, total_amount, status, customer_name, customer_email, customer_address, created_at)
            VALUES (?, ?, 'new', ?, ?, ?, NOW())";
   $stmt = $mysqli->prepare($sqlO);
@@ -113,7 +113,7 @@ try {
   $orderId = (int)$stmt->insert_id;
   $stmt->close();
 
-  // order_items
+ 
   $sqlI = "INSERT INTO order_items (order_id, product_id, product_name, unit_price, qty)
            VALUES (?, ?, ?, ?, ?)";
   $stmt = $mysqli->prepare($sqlI);
@@ -130,17 +130,16 @@ try {
   }
   $stmt->close();
 
-  // commit
+
   $mysqli->commit();
 
-  // 3) Kosár ürítése + flash + átirányítás
+  // Kosár ürítése és visszairányítás
   unset($_SESSION['cart']);
   $_SESSION['flash_success'] = "Rendelés sikeresen leadva (#{$orderId}).";
   header('Location: /my-orders.php'); exit;
 
 } catch (Throwable $e) {
   $mysqli->rollback();
-  // error_log('order_place error: '.$e->getMessage());
   $_SESSION['flash_error'] = 'Váratlan hiba történt a rendelés mentése közben.';
   header('Location: /cart.php'); exit;
 }

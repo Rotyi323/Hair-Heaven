@@ -5,7 +5,7 @@ require_once __DIR__ . '/connect.php';
 
 $mysqli = db(); 
 
-//  Egyszerű adatlekérő helper (hiba esetén üres tömb)
+
 function fetch_all_assoc(?mysqli $mysqli, string $sql): array {
   if (!$mysqli) return [];
   try {

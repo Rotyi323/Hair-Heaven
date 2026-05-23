@@ -49,10 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $pass = (string) ($_POST['password'] ?? '');
   $pass2 = (string) ($_POST['password_confirm'] ?? '');
 
-  /*Felhasználónév szabályok
-  - hossz: 3–100 karakter (szóköz megengedett)
-  - megengedett karakterek: magyar betűk, számok, pont, aláhúzás, kötőjel, szóköz
-  - legalább 3 betűnek kell szerepelnie benne (így nem lehet csak whitespace/dísz)*/
+  //Felhasználónév szabályok
+  
   $username_trim = trim($username);
   if ($username_trim === '' || mb_strlen($username, 'UTF-8') < 3 || mb_strlen($username, 'UTF-8') > 100) {
     $errors[] = 'A felhasználónév kötelező (3–100 karakter).';

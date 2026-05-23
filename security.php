@@ -27,7 +27,7 @@ if (!headers_sent()) {
     header("Content-Security-Policy: " . implode("; ", $csp));
 }
 
-//Multibyte/UTF-8 normalizálás
+
 if (!function_exists('hh_to_utf8')) {
     function hh_to_utf8($s) {
         if ($s === null) return null;
@@ -36,7 +36,7 @@ if (!function_exists('hh_to_utf8')) {
         if (!mb_check_encoding($s, 'UTF-8')) {
             $s = mb_convert_encoding($s, 'UTF-8', 'UTF-8');
         }
-        return str_replace("\0","", $s); // NUL byte kill
+        return str_replace("\0","", $s); 
     }
     $_GET  = hh_to_utf8($_GET);
     $_POST = hh_to_utf8($_POST);
@@ -53,7 +53,7 @@ if (!function_exists('get_str')) {
         $arr = ($src === 'POST') ? $_POST : $_GET;
         if (!isset($arr[$key])) return $default;
         $v = trim((string)$arr[$key]);
-        $v = preg_replace('/\s+/u', ' ', $v);  // felesleges whitespace ki
+        $v = preg_replace('/\s+/u', ' ', $v);  
         $v = mb_substr($v, 0, $maxlen);
         if ($pattern && !preg_match($pattern, $v)) return $default;
         return $v;

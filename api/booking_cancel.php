@@ -38,7 +38,6 @@ try {
   echo json_encode(['ok'=>true,'msg'=>'Foglalás lemondva']); exit;
 
 } catch(Throwable $e){
-  // error_log('cancel: '.$e->getMessage());
   echo json_encode(['ok'=>false,'msg'=>'Váratlan hiba történt']); exit;
 }
 

@@ -13,7 +13,7 @@ if (empty($_SESSION['belepve']) || empty($_SESSION['user_id'])) {
 }
 $userId = (int)$_SESSION['user_id'];
 
-//user betöltése
+
 $user = null;
 if ($mysqli) {
   $stmt = $mysqli->prepare("SELECT id, username, email, avatar, address FROM users WHERE id = ? LIMIT 1");
@@ -34,7 +34,7 @@ $okMsg = $errMsg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   csrf_validate();
 
-  // 0) szállítási cím (min 10)
+  // szállítási cím (min 10)
   $address = trim((string)($_POST['address'] ?? ''));
   if ($address !== '' && mb_strlen($address) < 10) {
     $errMsg = 'A szállítási cím legalább 10 karakter legyen.';
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errMsg = 'A szállítási cím túl hosszú (max. 255 karakter).';
   }
 
-  // 1) opcionális avatar feltöltés
+  // avatar feltöltés
   $newAvatarPath = null;
   if ($errMsg === '' && !empty($_FILES['avatar']['name']) && is_uploaded_file($_FILES['avatar']['tmp_name'])) {
     $f = $_FILES['avatar'];
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
 
-  // 2) opcionális jelszócsere
+  //jelszócsere
   $pwOk = true;
   $pwCurrent = trim((string)($_POST['current_password'] ?? ''));
   $pw1 = trim((string)($_POST['new_password'] ?? ''));
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
 
-  // 3) mentések
+  // mentések
   if ($errMsg === '' && $mysqli) {
     $mysqli->begin_transaction();
     try {
@@ -155,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 }
 
-// Avatar megjelenítés (ha nincs, akkor helyettesítő kép)
+// Avatar megjelenítés/placeholder
 $avatarUrl = !empty($user['avatar']) ? $user['avatar'] : '/assets/img/avatar-placeholder.svg';
 $addressVal = (string)($user['address'] ?? '');
 ?>
@@ -266,7 +266,7 @@ document.getElementById('avatar')?.addEventListener('change', function(){
   document.getElementById('avatarPreview').src = url;
 });
 
-// Elvetés = oldal újratöltése
+// Elvetés
 document.getElementById('discardBtn')?.addEventListener('click', () => { location.reload(); });
 </script>
 

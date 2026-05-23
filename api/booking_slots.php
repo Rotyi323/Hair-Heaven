@@ -67,7 +67,7 @@ if ($duration <= 0) $duration = 30;
 $openTime  = '08:00';
 $closeTime = '16:00';
 
-// 15 perces osztás
+// 15 percenként
 $stepMinutes = 15;
 
 // Foglalt időpontok az adott napra

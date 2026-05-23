@@ -32,8 +32,7 @@ if ($mysqli) {
   }
   $stmt->close();
 
-  if (!empty($orders)) {
-    // tételek egyben 
+  if (!empty($orders)) { 
     $ids = array_keys($orders);
     $in  = implode(',', array_fill(0, count($ids), '?'));
     $types = str_repeat('i', count($ids));

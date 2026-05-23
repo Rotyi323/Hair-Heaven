@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../connect.php';
@@ -33,7 +33,7 @@ function post_bool($k)
   return isset($_POST[$k]) && ($_POST[$k] === '1' || $_POST[$k] === 'on');
 }
 
-// biztonságos feltöltés (termék kép)
+
 function save_product_image(array $file): ?string
 {
   if (empty($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK)
